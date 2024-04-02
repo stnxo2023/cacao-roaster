@@ -14,6 +14,10 @@ export default class UserSettingsProps {
     return this.identifier != '' && this.secretKey != '' && this.publicKey != '';
   }
 
+  get isIdValid(): boolean {
+    return this.passRegex(this.identifier);
+  }
+
   showDialog() {
     let dialog = document.createElement('dialog') as HTMLDialogElement;
     dialog.className = 'dialog';
@@ -26,23 +30,23 @@ export default class UserSettingsProps {
     });
     document.body.appendChild(dialog);
 
-    dialog.appendChild(getTitleHTMLElement());
+    dialog.appendChild(this.getTitleHTMLElement());
 
-    let identifierContainer = getPropertyHTMLElement(
+    let identifierContainer = this.getPropertyHTMLElement(
       'User identifier',
       'identifier',
       'input',
       this.identifier,
     );
     dialog.appendChild(identifierContainer);
-    let secretKeyContainer = getPropertyHTMLElement(
+    let secretKeyContainer = this.getPropertyHTMLElement(
       'Secret key (beta - for experimental purposes only)',
       'secretKey',
       'textarea',
       this.secretKey,
     );
     dialog.appendChild(secretKeyContainer);
-    let publicKeyContainer = getPropertyHTMLElement(
+    let publicKeyContainer = this.getPropertyHTMLElement(
       'Public key (beta - for experimental purposes only)',
       'publicKey',
       'textarea',
@@ -53,8 +57,8 @@ export default class UserSettingsProps {
     let buttonContainer = document.createElement('div');
     buttonContainer.className = 'dialog__buttonList';
 
-    let confirm = getButtonHTMLElement('Confirm', true);
-    let cancel = getButtonHTMLElement('Cancel', false);
+    let confirm = this.getButtonHTMLElement('Confirm', true);
+    let cancel = this.getButtonHTMLElement('Cancel', false);
 
     buttonContainer.appendChild(cancel);
     buttonContainer.appendChild(confirm);
@@ -65,18 +69,18 @@ export default class UserSettingsProps {
 
     return new Promise<boolean>(resolve => {
       confirm.addEventListener('click', () => {
-        let identifier = identifierContainer.getElementsByClassName('property__input')[0] as
-          | HTMLInputElement
-          | HTMLTextAreaElement;
-        let publicKey = publicKeyContainer.getElementsByClassName('property__input')[0] as
-          | HTMLInputElement
-          | HTMLTextAreaElement;
-        let secretKey = secretKeyContainer.getElementsByClassName('property__input')[0] as
-          | HTMLInputElement
-          | HTMLTextAreaElement;
+        let identifier = identifierContainer.getElementsByClassName(
+          'property__input',
+        )[0] as HTMLInputElement;
+        let publicKey = publicKeyContainer.getElementsByClassName(
+          'property__input',
+        )[0] as HTMLTextAreaElement;
+        let secretKey = secretKeyContainer.getElementsByClassName(
+          'property__input',
+        )[0] as HTMLTextAreaElement;
 
         let correct = true;
-        if (!passRegex(identifier.value, this.identifierPattern)) {
+        if (!this.passRegex(identifier.value)) {
           correct = false;
           identifier.classList.add('input--incorrect');
         } else {
@@ -101,53 +105,53 @@ export default class UserSettingsProps {
       });
     });
   }
-}
 
-function passRegex(value: string, regex: string): boolean {
-  let reg = RegExp(regex);
-  return value == '' || reg.test(value);
-}
-
-function getTitleHTMLElement(): HTMLElement {
-  let titleDialog = document.createElement('div') as HTMLDivElement;
-  titleDialog.innerHTML = 'Settings';
-  titleDialog.className = 'dialog__title';
-  return titleDialog;
-}
-
-function getPropertyHTMLElement(
-  label: string,
-  id: string,
-  type: 'textarea' | 'input',
-  value: string = '',
-): HTMLElement {
-  let propertyContainer = document.createElement('div');
-  propertyContainer.className = 'dialog__property';
-  propertyContainer.id = id;
-
-  let labelElement = document.createElement('div');
-  labelElement.innerHTML = label;
-  labelElement.className = 'property__label';
-
-  let inputElement = document.createElement(type);
-  inputElement.className = 'property__input';
-  inputElement.value = value;
-
-  propertyContainer.appendChild(labelElement);
-  propertyContainer.appendChild(inputElement);
-  return propertyContainer;
-}
-
-function getButtonHTMLElement(label: string, isPrimary = true): HTMLElement {
-  let button = document.createElement('button');
-  button.className = 'dialog__button';
-  button.innerText = label;
-
-  if (isPrimary) {
-    button.classList.add('button--primary');
-  } else {
-    button.classList.add('button--secondary');
+  passRegex(value: string): boolean {
+    let reg = RegExp(this.identifierPattern);
+    return value == '' || reg.test(value);
   }
 
-  return button;
+  getTitleHTMLElement(): HTMLElement {
+    let titleDialog = document.createElement('div') as HTMLDivElement;
+    titleDialog.innerHTML = 'Settings';
+    titleDialog.className = 'dialog__title';
+    return titleDialog;
+  }
+
+  getPropertyHTMLElement(
+    label: string,
+    id: string,
+    type: 'textarea' | 'input',
+    value: string = '',
+  ): HTMLElement {
+    let propertyContainer = document.createElement('div');
+    propertyContainer.className = 'dialog__property';
+    propertyContainer.id = id;
+
+    let labelElement = document.createElement('div');
+    labelElement.innerHTML = label;
+    labelElement.className = 'property__label';
+
+    let inputElement = document.createElement(type);
+    inputElement.className = 'property__input';
+    inputElement.value = value;
+
+    propertyContainer.appendChild(labelElement);
+    propertyContainer.appendChild(inputElement);
+    return propertyContainer;
+  }
+
+  getButtonHTMLElement(label: string, isPrimary = true): HTMLElement {
+    let button = document.createElement('button');
+    button.className = 'dialog__button';
+    button.innerText = label;
+
+    if (isPrimary) {
+      button.classList.add('button--primary');
+    } else {
+      button.classList.add('button--secondary');
+    }
+
+    return button;
+  }
 }
