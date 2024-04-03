@@ -4,10 +4,7 @@ import { Signature } from '../../../../../lib/cacao2-js/src/data-types/Signature
 import PropertyPanel from '../side-panel/PropertyPanel';
 import crypto from 'crypto';
 import UserSettingsProps from '../../../../app/UserSettingsProps';
-import {
-  extractSchemaTypes,
-  schemaDictWithoutAgentTarget,
-} from '../../model/SchemaTypes';
+import { extractSchemaTypes, schemaDictWithoutAgentTarget } from '../../model/SchemaTypes';
 import CacaoRules from '../rules/CacaoRules';
 import CacaoUtils from '../../core/CacaoUtils';
 import CacaoDialog from '../../core/CacaoDialog';
@@ -45,9 +42,7 @@ export default class CacaoSigning {
    */
   showSignatureCheckDialog() {
     let createSignatureTile = (signature: Signature): HTMLDivElement => {
-      let createCountersignTile = (
-        countersignature: Signature,
-      ): HTMLDivElement => {
+      let createCountersignTile = (countersignature: Signature): HTMLDivElement => {
         let container = document.createElement('div');
         container.className = 'signatureContainer';
 
@@ -68,18 +63,15 @@ export default class CacaoSigning {
             break;
           case 'incorrect':
             container.classList.add('indicator--incorrect');
-            container.title =
-              'the signature does not correspond to this version of the playbook';
+            container.title = 'the signature does not correspond to this version of the playbook';
             break;
           case 'not-implemented':
             container.classList.add('indicator--notimplemented');
-            container.title =
-              'the hash or sign algorithm is not implemented in this application';
+            container.title = 'the hash or sign algorithm is not implemented in this application';
             break;
           case 'passed':
             container.classList.add('indicator--passed');
-            container.title =
-              'this signature correspond to this version of the playbook';
+            container.title = 'this signature correspond to this version of the playbook';
             break;
         }
         container.appendChild(indicator);
@@ -130,18 +122,15 @@ export default class CacaoSigning {
           break;
         case 'incorrect':
           container.classList.add('indicator--incorrect');
-          container.title =
-            'the signature does not correspond to this version of the playbook';
+          container.title = 'the signature does not correspond to this version of the playbook';
           break;
         case 'not-implemented':
           container.classList.add('indicator--notimplemented');
-          container.title =
-            'the hash or sign algorithm is not implemented in this application';
+          container.title = 'the hash or sign algorithm is not implemented in this application';
           break;
         case 'passed':
           container.classList.add('indicator--passed');
-          container.title =
-            'this signature correspond to this version of the playbook';
+          container.title = 'this signature correspond to this version of the playbook';
           break;
       }
       container.appendChild(indicator);
@@ -227,10 +216,7 @@ export default class CacaoSigning {
 
     if (action == 'sign') {
       await this.createSignatureObject(
-        async (
-          counterSignature: Signature,
-          privateKey: string,
-        ): Promise<void> => {
+        async (counterSignature: Signature, privateKey: string): Promise<void> => {
           await this.sign(counterSignature, privateKey);
         },
       );
@@ -240,8 +226,7 @@ export default class CacaoSigning {
         if (this.signatureCanBeCountersigned(signature)) {
           if (
             !validSignature ||
-            new Date(validSignature.modified).getTime() >
-              new Date(signature.modified).getTime()
+            new Date(validSignature.modified).getTime() > new Date(signature.modified).getTime()
           ) {
             validSignature = signature;
           }
@@ -256,15 +241,8 @@ export default class CacaoSigning {
       }
 
       await this.createSignatureObject(
-        async (
-          counterSignature: Signature,
-          privateKey: string,
-        ): Promise<void> => {
-          await this.countersign(
-            validSignature as any,
-            counterSignature,
-            privateKey,
-          );
+        async (counterSignature: Signature, privateKey: string): Promise<void> => {
+          await this.countersign(validSignature as any, counterSignature, privateKey);
         },
       );
     } else {
@@ -276,10 +254,7 @@ export default class CacaoSigning {
   }
 
   canUserSignOrCounterSignPlaybook(): 'sign' | 'countersign' | 'none' {
-    if (
-      this._playbookHandler.playbook.created_by ==
-      UserSettingsProps.instance.identifier
-    ) {
+    if (this._playbookHandler.playbook.created_by == UserSettingsProps.instance.identifier) {
       //if you are the owner of the playbook
       return 'sign';
     } else {
@@ -312,12 +287,7 @@ export default class CacaoSigning {
     formContainer.className = 'cacaoDialog__body';
     dialog.appendChild(formContainer);
 
-    let propertyPanel = new PropertyPanel(
-      this._playbookHandler,
-      'signature',
-      {},
-      formContainer,
-    );
+    let propertyPanel = new PropertyPanel(this._playbookHandler, 'signature', {}, formContainer);
     propertyPanel.setIsAgentTarget(false);
 
     let aa = extractSchemaTypes(
@@ -360,14 +330,15 @@ export default class CacaoSigning {
           return;
         }
 
-        if (!UserSettingsProps.instance.isFulfil) {
-          errorMessage.innerHTML = 'you need to fulfil the settings properties';
+        if (!UserSettingsProps.instance.isSigningInfoFilledIn) {
+          errorMessage.innerHTML =
+            'Please fill in the private and public keys in the user settings.';
           return;
         }
 
         try {
           signature.public_key = UserSettingsProps.instance.publicKey;
-          await signingMethod(signature, UserSettingsProps.instance.secretKey);
+          await signingMethod(signature, UserSettingsProps.instance.privateKey);
         } catch (e) {
           errorMessage.innerHTML = 'issue in the signing process';
           return;
@@ -390,11 +361,7 @@ export default class CacaoSigning {
    * @param counterSignature the countersign signature
    * @param privateKey the private key use during the signature
    */
-  private countersign(
-    signature: Signature,
-    counterSignature: Signature,
-    privateKey: string,
-  ) {
+  private countersign(signature: Signature, counterSignature: Signature, privateKey: string) {
     // Step 1: Create or parse the playbook to be signed
 
     this._playbookHandler.setPlaybookDates();
@@ -419,9 +386,7 @@ export default class CacaoSigning {
     this._playbookHandler.playbook.signatures.push(parentSignature);
 
     // Step 4: Create a JCS [RFC8785] canonical version of entire playbook from step 3
-    let jsc_canonical = canonicalize(
-      CacaoUtils.filterEmptyValues(this._playbookHandler.playbook),
-    );
+    let jsc_canonical = canonicalize(CacaoUtils.filterEmptyValues(this._playbookHandler.playbook));
     if (jsc_canonical == undefined) {
       this._playbookHandler.playbook.signatures = oldSignatures;
       throw Error('error during canonicalization of the playbook');
@@ -435,11 +400,7 @@ export default class CacaoSigning {
     }
 
     // Step 6: Sign the hash from step 5 using the algorithm (e.g., RS256) defined in the signature object and base64URL.encode it
-    let signValue = sign(
-      counterSignature.algorithm,
-      privateKey,
-      Buffer.from(hashValue),
-    );
+    let signValue = sign(counterSignature.algorithm, privateKey, Buffer.from(hashValue));
     // Step 7: Append the new b64 digital signature from step 6 to the signatures value property (also include any existing signatures, that were removed in step 2)
     counterSignature.value = signValue.toString('hex');
 
@@ -471,9 +432,7 @@ export default class CacaoSigning {
     this._playbookHandler.playbook.signatures.push(signature);
 
     // Step 4: Create a JCS [RFC8785] canonical version of entire playbook from step 3
-    let jsc_canonical = canonicalize(
-      CacaoUtils.filterEmptyValues(this._playbookHandler.playbook),
-    );
+    let jsc_canonical = canonicalize(CacaoUtils.filterEmptyValues(this._playbookHandler.playbook));
     if (jsc_canonical == undefined) {
       this._playbookHandler.playbook.signatures = oldSignatures;
       throw Error('error during canonicalization of the playbook');
@@ -487,11 +446,7 @@ export default class CacaoSigning {
     }
 
     // Step 6: Sign the hash from step 5 using the algorithm (e.g., RS256) defined in the signature object and base64URL.encode it
-    let signValue = sign(
-      signature.algorithm,
-      privateKey,
-      Buffer.from(hashValue),
-    );
+    let signValue = sign(signature.algorithm, privateKey, Buffer.from(hashValue));
     // Step 7: Append the new b64 digital signature from step 6 to the signatures value property (also include any existing signatures, that were removed in step 2)
     signature.value = signValue.toString('hex');
     this._playbookHandler.playbook.signatures.push(...oldSignatures);
@@ -544,9 +499,7 @@ export default class CacaoSigning {
     let publicKey = signature.public_key;
 
     // Step 4: Create a JCS [RFC8785] canonical version of entire playbook from step 2
-    let jsc_canonical = canonicalize(
-      CacaoUtils.filterEmptyValues(this._playbookHandler.playbook),
-    );
+    let jsc_canonical = canonicalize(CacaoUtils.filterEmptyValues(this._playbookHandler.playbook));
     if (jsc_canonical == undefined) {
       this._playbookHandler.playbook.signatures = playbookSignatures;
       return 'failed';
@@ -589,18 +542,12 @@ export default class CacaoSigning {
       return false;
     }
     let validityDate = new Date(this._playbookHandler.playbook.valid_until);
-    if (
-      !isNaN(validityDate.getTime()) &&
-      validityDate.getTime() < new Date().getTime()
-    ) {
+    if (!isNaN(validityDate.getTime()) && validityDate.getTime() < new Date().getTime()) {
       return false;
     }
 
     validityDate = new Date(this._playbookHandler.playbook.valid_from);
-    if (
-      !isNaN(validityDate.getTime()) &&
-      validityDate.getTime() > new Date().getTime()
-    ) {
+    if (!isNaN(validityDate.getTime()) && validityDate.getTime() > new Date().getTime()) {
       return false;
     }
     return true;
@@ -615,9 +562,7 @@ export default class CacaoSigning {
  */
 function hash(hash_algorithm: string, value: string): string {
   if (!hashAlgorithmList.includes(hash_algorithm)) {
-    throw Error(
-      'hash algorithm not handle by the application: ' + hash_algorithm,
-    );
+    throw Error('hash algorithm not handle by the application: ' + hash_algorithm);
   }
   return crypto.createHash(hash_algorithm).update(value).digest('hex');
 }
@@ -647,12 +592,7 @@ function sign(algorithm: string, private_key: string, value: Buffer): Buffer {
  * @param signature the sqignature that should match the value
  * @returns a boolean, True if the signature is correct, False otherwise
  */
-function verify(
-  algorithm: string,
-  public_key: string,
-  value: Buffer,
-  signature: Buffer,
-): boolean {
+function verify(algorithm: string, public_key: string, value: Buffer, signature: Buffer): boolean {
   if (!signAlgorithmList.includes(algorithm)) {
     throw Error('sign algorithm not handle by the application: ' + algorithm);
   }

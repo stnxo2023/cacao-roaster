@@ -200,6 +200,38 @@
   color: white;
 }
 
+.dialog__buttonList > button:hover {
+  padding: 4px;
+  margin-left: 10px;
+  border-radius: 5px;
+  border: 1px solid blueviolet;
+}
+
 .dialog__buttonList > button.button--primary {
   color: black;
+}
+
+.keyPair__button-wrapper {
+  display: flex;
+  justify-content: flex-end;
+
+  color: white;
+  background-color: none;
+}
+
+.keyPair__button-wrapper > Button {
+  color: white;
+  padding: 10px;
+  background-color: none;
+}
+
+.keyPair__button-wrapper > Button:hover {
+  border: 1px solid white;
+  padding: 9px;
+  cursor: pointer;
+}
+
+.keyPair__button-wrapper > Button:focus {
+  border: 1px solid white;
+  padding: 9px;
 }

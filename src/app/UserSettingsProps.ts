@@ -4,18 +4,26 @@ import { v4 as uuidv4 } from 'uuid';
 export default class UserSettingsProps {
   static instance: UserSettingsProps = new UserSettingsProps();
 
-  identifier: Identifier = 'identity--' + uuidv4();
+  identifier: Identifier = this.getOrCreateUserIdentifier;
   private identifierPattern =
     '^[a-z][a-z0-9-]+[a-z0-9]--[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$';
-  secretKey: string = '';
+  privateKey: string = '';
   publicKey: string = '';
 
-  get isFulfil(): boolean {
-    return this.identifier != '' && this.secretKey != '' && this.publicKey != '';
+  get isSigningInfoFilledIn(): boolean {
+    return this.isIdValid && this.isKeyPairValid;
   }
 
   get isIdValid(): boolean {
     return this.passRegex(this.identifier);
+  }
+
+  get isKeyPairValid(): boolean {
+    return this.privateKey.includes('-----BEGIN ') && this.publicKey.includes('-----BEGIN ');
+  }
+
+  get getOrCreateUserIdentifier(): Identifier {
+    return (process.env.USER_IDENTIFIER as Identifier) || 'identity--' + uuidv4();
   }
 
   showDialog() {
@@ -39,13 +47,14 @@ export default class UserSettingsProps {
       this.identifier,
     );
     dialog.appendChild(identifierContainer);
-    let secretKeyContainer = this.getPropertyHTMLElement(
-      'Secret key (beta - for experimental purposes only)',
-      'secretKey',
+    let privateKeyContainer = this.getPropertyHTMLElement(
+      'Private key (beta - for experimental purposes only)',
+      'privateKey',
       'textarea',
-      this.secretKey,
+      this.privateKey,
     );
-    dialog.appendChild(secretKeyContainer);
+    dialog.appendChild(this.demoKeyPairDiv());
+    dialog.appendChild(privateKeyContainer);
     let publicKeyContainer = this.getPropertyHTMLElement(
       'Public key (beta - for experimental purposes only)',
       'publicKey',
@@ -75,7 +84,7 @@ export default class UserSettingsProps {
         let publicKey = publicKeyContainer.getElementsByClassName(
           'property__input',
         )[0] as HTMLTextAreaElement;
-        let secretKey = secretKeyContainer.getElementsByClassName(
+        let privateKey = privateKeyContainer.getElementsByClassName(
           'property__input',
         )[0] as HTMLTextAreaElement;
 
@@ -89,7 +98,7 @@ export default class UserSettingsProps {
         if (correct) {
           this.identifier = identifier.value;
           this.publicKey = publicKey.value;
-          this.secretKey = secretKey.value;
+          this.privateKey = privateKey.value;
           dialog.close();
           dialog.remove();
           document.body.classList.remove('blurred');
@@ -134,6 +143,7 @@ export default class UserSettingsProps {
 
     let inputElement = document.createElement(type);
     inputElement.className = 'property__input';
+    inputElement.id = id + '-' + type;
     inputElement.value = value;
 
     propertyContainer.appendChild(labelElement);
@@ -153,5 +163,39 @@ export default class UserSettingsProps {
     }
 
     return button;
+  }
+
+  loadDemoKeyPair() {
+    this.privateKey = process.env.PRIVATE_KEY || '';
+    this.publicKey = process.env.PUBLIC_KEY || '';
+  }
+
+  demoKeyPairDiv(): HTMLDivElement {
+    let useDemoKeysBtn = document.createElement('button');
+    useDemoKeysBtn.classList.add('dialog__button', 'button--secondary');
+    useDemoKeysBtn.innerText = 'Use demo keys';
+    useDemoKeysBtn.addEventListener('click', () => {
+      this.loadDemoKeyPair();
+      let privateKeyInput = document.getElementById('privateKey-textarea') as HTMLTextAreaElement;
+      let publicKeyInput = document.getElementById('publicKey-textarea') as HTMLTextAreaElement;
+      privateKeyInput.value = this.privateKey;
+      publicKeyInput.value = this.publicKey;
+    });
+
+    let clearDemoKeysBtn = document.createElement('button');
+    clearDemoKeysBtn.classList.add('dialog__button', 'button--secondary');
+    clearDemoKeysBtn.innerText = 'Clear Keys';
+    clearDemoKeysBtn.addEventListener('click', () => {
+      let privateKeyInput = document.getElementById('privateKey-textarea') as HTMLTextAreaElement;
+      let publicKeyInput = document.getElementById('publicKey-textarea') as HTMLTextAreaElement;
+      privateKeyInput.value = '';
+      publicKeyInput.value = '';
+    });
+
+    let buttonWrapper = document.createElement('div');
+    buttonWrapper.classList.add('keyPair__button-wrapper');
+    buttonWrapper.appendChild(useDemoKeysBtn);
+    buttonWrapper.appendChild(clearDemoKeysBtn);
+    return buttonWrapper;
   }
 }
