@@ -1,8 +1,6 @@
 import EventBus from 'diagram-js/lib/core/EventBus';
 import CacaoUtils from '../../core/CacaoUtils';
-import PlaybookHandler, {
-  ContextPlaybookAttrs,
-} from '../../model/PlaybookHandler';
+import PlaybookHandler, { ContextPlaybookAttrs } from '../../model/PlaybookHandler';
 import CacaoRules from '../rules/CacaoRules';
 import ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
 import SelectionTool from 'diagram-js/lib/features/selection/Selection';
@@ -75,11 +73,7 @@ export default class CacaoSidePanel {
       let selection = event.newSelection;
 
       //do not leave the sidepanel if we stay with the same shape selected
-      if (
-        selection != undefined &&
-        selection.length == 1 &&
-        selection[0]?.id == this?._shape?.id
-      ) {
+      if (selection != undefined && selection.length == 1 && selection[0]?.id == this?._shape?.id) {
         return;
       }
 
@@ -109,15 +103,10 @@ export default class CacaoSidePanel {
 
     // Remove the side panel if the shape is removed
     this._eventBus.on('playbook.changed', (context: ContextPlaybookAttrs) => {
-      if (
-        context.action == 'remove.shape' &&
-        context?.element?.id == this._stepId
-      ) {
+      if (context.action == 'remove.shape' && context?.element?.id == this._stepId) {
         this.closeSidePanel();
       } else if (
-        ['add.connection', 'update.connection', 'remove.connection'].includes(
-          context.action,
-        )
+        ['add.connection', 'update.connection', 'remove.connection'].includes(context.action)
       ) {
         if (this._propertyPanel) {
           // The first parameter is true as we are sure that this is not a command, as they don't have step_ids.
@@ -168,17 +157,13 @@ export default class CacaoSidePanel {
   private hide() {
     this._container.classList.remove('sidepanel--open');
     this._container.classList.add('sidepanel--close');
-    document
-      .getElementsByClassName('djs-minimap')[0]
-      ?.classList.remove('minimap--move');
+    document.getElementsByClassName('djs-minimap')[0]?.classList.remove('minimap--move');
   }
 
   private show() {
     this._container.classList.remove('sidepanel--close');
     this._container.classList.add('sidepanel--open');
-    document
-      .getElementsByClassName('djs-minimap')[0]
-      ?.classList.add('minimap--move');
+    document.getElementsByClassName('djs-minimap')[0]?.classList.add('minimap--move');
   }
 
   openSidepanel(element: Shape) {
@@ -187,12 +172,7 @@ export default class CacaoSidePanel {
     this._objectOpened = 'step';
 
     this._onConfirm = () => {
-      if (
-        !isEqual(
-          this._propertyPanel._previousPanel,
-          this._propertyPanel.submit(),
-        )
-      ) {
+      if (!isEqual(this._propertyPanel._previousPanel, this._propertyPanel.submit())) {
         this._cacaoModeling.updateShape(element);
       } else {
         this._cacaoModeling.updateGraphicalShapeOnCanvas(element);
@@ -225,9 +205,7 @@ export default class CacaoSidePanel {
     this._container.innerHTML = '';
     this._propertyPanel.addAllProperties();
     this._propertyPanel.setPreviousPanel(this._propertyPanel.submit());
-    this._propertyPanel.setPreviousStatus(
-      this._playbookHandler._executionStatus,
-    );
+    this._propertyPanel.setPreviousStatus(this._playbookHandler._executionStatus);
   }
 
   openMetadataPanel() {
@@ -238,12 +216,7 @@ export default class CacaoSidePanel {
     this._objectOpened = 'metadata';
 
     this._onConfirm = () => {
-      if (
-        !isEqual(
-          this._propertyPanel._previousPanel,
-          this._propertyPanel.submit(),
-        )
-      ) {
+      if (!isEqual(this._propertyPanel._previousPanel, this._propertyPanel.submit())) {
         let context: ContextPlaybookAttrs = {
           action: 'update.metadata',
           element: undefined as any,

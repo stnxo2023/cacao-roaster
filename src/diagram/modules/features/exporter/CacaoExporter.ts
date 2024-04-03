@@ -168,38 +168,44 @@ export default class CacaoExporter {
   // Creates a STIX 2.1 Course of Action object with the Playbook extension and attaches the relevant metadata and the whole CACAO playbook in base64 in the "playbook_base64" property.
   private createStixCoaWithPlaybookExtension(cacaoPlaybook: Playbook, coaID: string): object {
     return {
-      type: 'course-of-action',
-      spec_version: '2.1',
-      id: coaID,
-      created_by_ref: cacaoPlaybook.created_by,
-      created: new Date().toISOString(),
-      modified: new Date().toISOString(),
-      name: 'playbook',
-      description: cacaoPlaybook.description,
-      extensions: {
-        'extension-definition--1e1c1bd7-c527-4215-8e18-e199e74da57c': {
-          extension_type: 'property-extension',
-          playbook_id: cacaoPlaybook.id,
-          created: cacaoPlaybook.created,
-          modified: cacaoPlaybook.modified,
-          playbook_creator: cacaoPlaybook.created_by,
-          revoked: cacaoPlaybook.revoked,
-          labels: cacaoPlaybook.labels,
+      type: 'bundle',
+      id: 'bundle--' + uuidv4(),
+      objects: [
+        {
+          type: 'course-of-action',
+          spec_version: '2.1',
+          id: coaID,
+          created_by_ref: cacaoPlaybook.created_by,
+          created: new Date().toISOString(),
+          modified: new Date().toISOString(),
+          name: 'playbook',
           description: cacaoPlaybook.description,
-          playbook_valid_from: cacaoPlaybook.valid_from,
-          playbook_valid_until: cacaoPlaybook.valid_until,
-          playbook_creation_time: cacaoPlaybook.created,
-          playbook_impact: cacaoPlaybook.impact,
-          playbook_severity: cacaoPlaybook.severity,
-          playbook_priority: cacaoPlaybook.priority,
-          playbook_type: cacaoPlaybook.playbook_types,
-          playbook_standard: 'cacao',
-          playbook_abstraction: 'template',
-          playbook_base64: Buffer.from(
-            JSON.stringify(CacaoUtils.filterEmptyValues(cacaoPlaybook)),
-          ).toString('base64'),
+          extensions: {
+            'extension-definition--1e1c1bd7-c527-4215-8e18-e199e74da57c': {
+              extension_type: 'property-extension',
+              playbook_id: cacaoPlaybook.id,
+              created: cacaoPlaybook.created,
+              modified: cacaoPlaybook.modified,
+              playbook_creator: cacaoPlaybook.created_by,
+              revoked: cacaoPlaybook.revoked,
+              labels: cacaoPlaybook.labels,
+              description: cacaoPlaybook.description,
+              playbook_valid_from: cacaoPlaybook.valid_from,
+              playbook_valid_until: cacaoPlaybook.valid_until,
+              playbook_creation_time: cacaoPlaybook.created,
+              playbook_impact: cacaoPlaybook.impact,
+              playbook_severity: cacaoPlaybook.severity,
+              playbook_priority: cacaoPlaybook.priority,
+              playbook_type: cacaoPlaybook.playbook_types,
+              playbook_standard: 'cacao',
+              playbook_abstraction: 'template',
+              playbook_base64: Buffer.from(
+                JSON.stringify(CacaoUtils.filterEmptyValues(cacaoPlaybook)),
+              ).toString('base64'),
+            },
+          },
         },
-      },
+      ],
     };
   }
 
