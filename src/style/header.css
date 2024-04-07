@@ -199,6 +199,15 @@
   align-items: center;
 }
 
+.integrations {
+  --svg: url('../assets/icons/integrations.svg');
+  width: 59px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 .metadata {
   --svg: url('../assets/icons/edit.svg');
 }

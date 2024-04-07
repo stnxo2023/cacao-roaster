@@ -114,6 +114,12 @@
   border: 1px solid rgb(115, 117, 154);
 }
 
+.integration {
+  max-width: 600px;
+  width: 90%;
+  max-height: 70%;
+}
+
 .dialog__title {
   padding: 10px 15px;
   letter-spacing: 2px;
@@ -197,6 +203,7 @@
   padding: 5px;
   margin-left: 10px;
   border-radius: 5px;
+  max-width: 140px;
   color: white;
 }
 
@@ -205,6 +212,7 @@
   margin-left: 10px;
   border-radius: 5px;
   border: 1px solid blueviolet;
+  cursor: pointer;
 }
 
 .dialog__buttonList > button.button--primary {
@@ -234,4 +242,54 @@
 .keyPair__button-wrapper > Button:focus {
   border: 1px solid white;
   padding: 9px;
+}
+
+.error_message-div {
+  display: flex;
+  align-items: center;
+}
+
+.error_message {
+  color: red;
+  font-size: 11px;
+  padding: 0px 5px;
+}
+
+.integration-info {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  background-color: rgb(60, 61, 92);
+  margin: 7px;
+  border-radius: 7px;
+}
+
+/* Styling for the dropdown */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Styling for the dropdown content */
+.dropdown-item {
+  position: absolute;
+  top: 10px;
+  left: -36px;
+  min-width: 100px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  color: rgb(255, 255, 255);
+  padding: 12px 16px;
+  text-decoration: none;
+  background-color: var(--header-background);
+}
+
+.dropdown-item:hover {
+  background-color: var(--header-button-background);
+  color: var(--select);
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
 }

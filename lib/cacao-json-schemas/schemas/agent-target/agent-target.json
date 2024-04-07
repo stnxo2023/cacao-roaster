@@ -51,7 +51,9 @@
             "linux",
             "net-address",
             "security-category",
-            "ssh"
+            "ssh",
+            "soarca-ssh",
+            "soarca-http-api"
           ]
         }
       ]

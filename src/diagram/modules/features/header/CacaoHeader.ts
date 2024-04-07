@@ -6,6 +6,7 @@ import CacaoSigning from '../signing/CacaoSigning';
 import ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
 import CacaoUtils from '../../core/CacaoUtils';
 import CacaoModeling from '../modeling/CacaoModeling';
+import Soarca from '../integrations/soarca/Soarca';
 
 type HeaderOptionEntry = {
   action: (event: any) => void;
@@ -20,6 +21,7 @@ export default class CacaoHeader {
   private _cacaoSigning: CacaoSigning;
   private _elementRegistry: ElementRegistry;
   private _cacaoModeling: CacaoModeling;
+  private _soarcaIntegration: Soarca;
 
   private _headerContainer!: HTMLElement;
   private _headerName!: HTMLElement;
@@ -50,6 +52,7 @@ export default class CacaoHeader {
     this._cacaoSigning = cacaoSigning;
     this._elementRegistry = elementRegistry;
     this._cacaoModeling = cacaoModeling;
+    this._soarcaIntegration = new Soarca(playbookHandler);
 
     this.initHeader(tabContainer);
 
@@ -299,9 +302,55 @@ export default class CacaoHeader {
       },
     ];
     this._headerOptions.innerHTML = '';
+    this._integrationsDropDownButton();
     for (let entry of entries) {
       this.createEntry(entry, this._headerOptions);
     }
+  }
+
+  private _integrationsDropDownButton() {
+    const dropdownContent = document.createElement('div');
+    dropdownContent.classList.add('dropdown', 'hidden');
+
+    const dropdownButton = document.createElement('div');
+    dropdownButton.classList.add('integrations', 'options__entry');
+    dropdownButton.addEventListener('click', () => {
+      dropdownContent.classList.toggle('hidden');
+    });
+
+    const entryIcon = document.createElement('div');
+    entryIcon.classList.add('entry__icon');
+
+    const entryLabel = document.createElement('p');
+    entryLabel.classList.add('entry__label');
+    entryLabel.innerText = 'INTEGRATIONS';
+
+    const dropdownItem = document.createElement('div');
+    dropdownItem.classList.add('dropdown-item');
+    dropdownItem.id = 'integration-soarca';
+    dropdownItem.innerText = 'SOARCA';
+    dropdownItem.addEventListener('click', () => {
+      this._soarcaIntegration.showDialog();
+    });
+    const dropdownItemIcon = document.createElement('span');
+    dropdownItemIcon.classList.add('dropdown-item-icon');
+
+    dropdownContent.appendChild(dropdownItem);
+    dropdownButton.appendChild(entryIcon);
+    dropdownButton.appendChild(entryLabel);
+    dropdownButton.appendChild(dropdownContent);
+
+    // Close the dropdown when clicking outside of it
+    window.addEventListener('click', event => {
+      let clickEvent = event.target as HTMLElement;
+      if (!clickEvent.matches('.dropdown-button')) {
+        if (dropdownContent.classList.contains('show')) {
+          dropdownContent.classList.remove('show');
+        }
+      }
+    });
+
+    this._headerOptions.appendChild(dropdownButton);
   }
 
   /**

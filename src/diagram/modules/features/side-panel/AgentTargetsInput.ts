@@ -85,24 +85,21 @@ export abstract class AgentTargetsInput extends ComplexInput {
     let dialog = document.createElement('dialog');
     dialog.classList.add('list-dialog');
 
-    let propertyPanel = new PropertyPanel(
-      this._playbookHandler,
-      'agent-target',
-      {},
-      dialog,
-    );
+    let propertyPanel = new PropertyPanel(this._playbookHandler, 'agent-target', {}, dialog);
     propertyPanel.setIsAgentTarget(true);
     propertyPanel.setIsSubPanel(true);
     // Creates the "Close" to create the definition property and close the panel
     propertyPanel.addButton('OK', () => {
-      let obj = (this._playbookHandler.playbook as any)[
-        identifierReferences[this._propertyType]
-      ];
+      let obj = (this._playbookHandler.playbook as any)[identifierReferences[this._propertyType]];
       let value = propertyPanel.confirm();
       obj[value['type'] + '--' + uuidv4()] = value;
       this._playbookHandler.setPlaybookProperties(obj);
       propertyPanel.reloadClearedProperties('agent-target');
       this._reloadCallback();
+    });
+    // Creates the "Close" button to close the panel
+    propertyPanel.addButton('Close', () => {
+      dialog.close();
     });
 
     propertyPanel.addAllProperties();
@@ -140,11 +137,7 @@ export abstract class AgentTargetsInput extends ComplexInput {
   }
 
   addElement(item: any) {
-    let itemInput = new SimpleInput(
-      '',
-      this._list,
-      document.createElement('tr'),
-    );
+    let itemInput = new SimpleInput('', this._list, document.createElement('tr'));
     itemInput.setBasicInput(this.createBasicInput(this._propertyName, item));
     this._elements.push(itemInput);
     itemInput.addToContainer();

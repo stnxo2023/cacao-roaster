@@ -101,8 +101,8 @@ export default class PlaybookHandler {
     comparePlaybook.created = '';
     comparePlaybook.modified = '';
 
-    console.log(CacaoUtils.filterEmptyValues(compareInitialPlaybook));
-    console.log(CacaoUtils.filterEmptyValues(comparePlaybook));
+    // console.log(CacaoUtils.filterEmptyValues(compareInitialPlaybook));
+    // console.log(CacaoUtils.filterEmptyValues(comparePlaybook));
     let returnValue = !isEqual(
       CacaoUtils.filterEmptyValues(compareInitialPlaybook),
       CacaoUtils.filterEmptyValues(comparePlaybook),
@@ -216,10 +216,7 @@ export default class PlaybookHandler {
 
     step = WorkflowStepFactory.create({ type: modelType } as any);
 
-    if (
-      modelType == 'start' &&
-      CacaoUtils.isUndefined(this._playbook.workflow_start)
-    ) {
+    if (modelType == 'start' && CacaoUtils.isUndefined(this._playbook.workflow_start)) {
       this._playbook.workflow_start = id;
     }
     this._playbook.workflow[id] = step;
@@ -380,9 +377,7 @@ export default class PlaybookHandler {
         if (index != -1) {
           delete parallelStep.next_steps[index];
         } else {
-          throw new Error(
-            'parallel connection: connection not defined in the list',
-          );
+          throw new Error('parallel connection: connection not defined in the list');
         }
         break;
       case CacaoConnectionType.ON_SWITCH_CONDITION:
@@ -396,9 +391,7 @@ export default class PlaybookHandler {
           }
         }
         if (!deleted) {
-          throw new Error(
-            'parallel connection: connection not defined in the list',
-          );
+          throw new Error('parallel connection: connection not defined in the list');
         }
         break;
       case CacaoConnectionType.ON_WHILE_CONDITION:
@@ -406,9 +399,7 @@ export default class PlaybookHandler {
         if (whileStep.on_true === idTo) {
           whileStep.on_true = '';
         } else {
-          throw new Error(
-            'while condition connection: on_true connected to another idTo',
-          );
+          throw new Error('while condition connection: on_true connected to another idTo');
         }
         break;
       case CacaoConnectionType.ON_IF_TRUE_CONDITION:
@@ -416,9 +407,7 @@ export default class PlaybookHandler {
         if (ifTStep.on_true === idTo) {
           ifTStep.on_true = '';
         } else {
-          throw new Error(
-            'if condition connection: on_true not connected to idTo',
-          );
+          throw new Error('if condition connection: on_true not connected to idTo');
         }
         break;
       case CacaoConnectionType.ON_IF_FALSE_CONDITION:
@@ -426,9 +415,7 @@ export default class PlaybookHandler {
         if (ifFStep.on_false === idTo) {
           ifFStep.on_false = '';
         } else {
-          throw new Error(
-            'if condition connection: on_false not connected to idTo',
-          );
+          throw new Error('if condition connection: on_false not connected to idTo');
         }
         break;
     }
@@ -443,15 +430,9 @@ export default class PlaybookHandler {
   addStepComplexProperties(stepId: string, property: string, values: object) {
     if (!Array.isArray((this._playbook.workflow[stepId] as any)[property])) {
       var dict = (this._playbook.workflow[stepId] as any)[property];
-      (this._playbook.workflow[stepId] as any)[property] = Object.assign(
-        {},
-        dict,
-        values,
-      );
+      (this._playbook.workflow[stepId] as any)[property] = Object.assign({}, dict, values);
     } else {
-      (this._playbook.workflow[stepId] as any)[property]?.push(
-        values as object,
-      );
+      (this._playbook.workflow[stepId] as any)[property]?.push(values as object);
     }
     let context: ContextPlaybookAttrs = {
       action: 'update.metadata',
@@ -464,8 +445,9 @@ export default class PlaybookHandler {
     if (stepId == 'metadata') {
       return [{}];
     }
-    let result: { [key: string]: any }[] = this._playbook.workflow[stepId]
-      .external_references as { [key: string]: any }[];
+    let result: { [key: string]: any }[] = this._playbook.workflow[stepId].external_references as {
+      [key: string]: any;
+    }[];
     if (result) {
       return result;
     }
@@ -492,10 +474,7 @@ export default class PlaybookHandler {
     return (this._playbook.workflow[stepId] as any)[property];
   }
 
-  getPreviousSteps(
-    stepId: Identifier,
-    playbook: Playbook = this._playbook,
-  ): Identifier[] {
+  getPreviousSteps(stepId: Identifier, playbook: Playbook = this._playbook): Identifier[] {
     let list: Identifier[] = [];
 
     for (let parentStepId in playbook.workflow) {
@@ -554,9 +533,7 @@ export default class PlaybookHandler {
     this.playbook.target_definitions[value[0]] = value[1];
   }
 
-  getNextSteps(
-    step: Partial<WorkflowStep>,
-  ): [Identifier, CacaoConnectionType][] {
+  getNextSteps(step: Partial<WorkflowStep>): [Identifier, CacaoConnectionType][] {
     let list: [Identifier, CacaoConnectionType][] = [];
 
     if (step?.on_completion) {
@@ -578,29 +555,20 @@ export default class PlaybookHandler {
           list.push([ifStep.on_true, CacaoConnectionType.ON_IF_TRUE_CONDITION]);
         }
         if (ifStep?.on_false) {
-          list.push([
-            ifStep.on_false,
-            CacaoConnectionType.ON_IF_FALSE_CONDITION,
-          ]);
+          list.push([ifStep.on_false, CacaoConnectionType.ON_IF_FALSE_CONDITION]);
         }
         break;
       case 'while-condition':
         let whileStep = step as Partial<WhileConditionStep>;
         if (whileStep?.on_true) {
-          list.push([
-            whileStep.on_true,
-            CacaoConnectionType.ON_WHILE_CONDITION,
-          ]);
+          list.push([whileStep.on_true, CacaoConnectionType.ON_WHILE_CONDITION]);
         }
         break;
       case 'switch-condition':
         let switchStep = step as Partial<SwitchConditionStep>;
         if (switchStep?.cases) {
           for (let key in switchStep.cases) {
-            list.push([
-              switchStep.cases[key],
-              CacaoConnectionType.ON_SWITCH_CONDITION,
-            ]);
+            list.push([switchStep.cases[key], CacaoConnectionType.ON_SWITCH_CONDITION]);
           }
         }
         break;
@@ -608,10 +576,7 @@ export default class PlaybookHandler {
         let parallelStep = step as Partial<ParallelStep>;
         if (parallelStep?.next_steps) {
           for (let key in parallelStep.next_steps) {
-            list.push([
-              parallelStep.next_steps[key],
-              CacaoConnectionType.ON_PARALLEL,
-            ]);
+            list.push([parallelStep.next_steps[key], CacaoConnectionType.ON_PARALLEL]);
           }
         }
         break;
@@ -626,21 +591,14 @@ export default class PlaybookHandler {
    * This methods iterates through the "markings" property and checks all the identifiers in the "data_marking_definitions" property and checks if it's a marking-tlp.
    * @returns A TLP marking or an empty string
    */
-  getTLPMarking():
-    | ''
-    | 'TLP:GREEN'
-    | 'TLP:AMBER'
-    | 'TLP:RED'
-    | 'TLP:AMBER+STRICT'
-    | 'TLP:WHITE' {
+  getTLPMarking(): '' | 'TLP:GREEN' | 'TLP:AMBER' | 'TLP:RED' | 'TLP:AMBER+STRICT' | 'TLP:WHITE' {
     if (!this._playbook) {
       return '';
     }
 
     for (let index in this._playbook.markings) {
       let markingId = this._playbook.markings[index];
-      let dataMarkingDefinition =
-        this._playbook.data_marking_definitions[markingId];
+      let dataMarkingDefinition = this._playbook.data_marking_definitions[markingId];
       if (dataMarkingDefinition.type === 'marking-tlp') {
         return (dataMarkingDefinition as any).tlpv2_level;
       }
@@ -679,30 +637,21 @@ export default class PlaybookHandler {
       //is Connection
       let workflowstep = this.playbook.workflow[element?.source?.id];
       if (workflowstep == undefined) {
-        throw Error(
-          "the connection's source does not correspond to any workflow step",
-        );
+        throw Error("the connection's source does not correspond to any workflow step");
       }
-      let coordinatesExtension = this.getCoordinatesExtension(
-        element?.source?.id,
-      );
+      let coordinatesExtension = this.getCoordinatesExtension(element?.source?.id);
       if (!workflowstep.step_extensions) {
         return;
       }
       if (!coordinatesExtension) {
-        workflowstep.step_extensions[CoordinatesExtensionIdentifier] =
-          new CoordinatesExtension();
-        coordinatesExtension =
-          workflowstep.step_extensions[CoordinatesExtensionIdentifier];
+        workflowstep.step_extensions[CoordinatesExtensionIdentifier] = new CoordinatesExtension();
+        coordinatesExtension = workflowstep.step_extensions[CoordinatesExtensionIdentifier];
       }
       if (!coordinatesExtension) {
         return;
       }
 
-      let fillCoordinates = (
-        connectionExtension: ConnectionExtension,
-        connection: Connection,
-      ) => {
+      let fillCoordinates = (connectionExtension: ConnectionExtension, connection: Connection) => {
         let index = 0;
         connectionExtension.x = [];
         connectionExtension.y = [];
@@ -719,8 +668,7 @@ export default class PlaybookHandler {
             case 'cases':
               let casesExt = ext as CasesConnectionExtension;
               if (
-                (workflowstep as SwitchConditionStep)?.cases[casesExt.case] ==
-                element?.target?.id
+                (workflowstep as SwitchConditionStep)?.cases[casesExt.case] == element?.target?.id
               ) {
                 connectionExtension = ext;
               }
@@ -740,13 +688,8 @@ export default class PlaybookHandler {
       if (connectionExtension == undefined) {
         if (element?.type == 'cases') {
           let newExtension = new CasesConnectionExtension();
-          for (let key of Object.keys(
-            (workflowstep as SwitchConditionStep)?.cases,
-          )) {
-            if (
-              (workflowstep as SwitchConditionStep)?.cases[key] ==
-              element?.target?.id
-            ) {
+          for (let key of Object.keys((workflowstep as SwitchConditionStep)?.cases)) {
+            if ((workflowstep as SwitchConditionStep)?.cases[key] == element?.target?.id) {
               newExtension.case = key;
               break;
             }
@@ -776,8 +719,7 @@ export default class PlaybookHandler {
         workflowstep.step_extensions = [];
       }
 
-      workflowstep.step_extensions[CoordinatesExtensionIdentifier] =
-        new CoordinatesExtension();
+      workflowstep.step_extensions[CoordinatesExtensionIdentifier] = new CoordinatesExtension();
 
       let coordinatesExtension: CoordinatesExtension =
         workflowstep.step_extensions[CoordinatesExtensionIdentifier];
@@ -794,19 +736,13 @@ export default class PlaybookHandler {
       //is Connection
       let workflowstep = this.playbook.workflow[element?.source?.id];
       if (workflowstep == undefined) {
-        throw Error(
-          "the connection's source does not correspond to any workflow step",
-        );
+        throw Error("the connection's source does not correspond to any workflow step");
       }
       if (workflowstep.step_extensions == undefined) {
         workflowstep.step_extensions = [];
       }
-      if (
-        workflowstep.step_extensions[CoordinatesExtensionIdentifier] ==
-        undefined
-      ) {
-        workflowstep.step_extensions[CoordinatesExtensionIdentifier] =
-          new CoordinatesExtension();
+      if (workflowstep.step_extensions[CoordinatesExtensionIdentifier] == undefined) {
+        workflowstep.step_extensions[CoordinatesExtensionIdentifier] = new CoordinatesExtension();
       }
       delete workflowstep.step_extensions[CoordinatesExtensionIdentifier];
     } else {
@@ -819,20 +755,14 @@ export default class PlaybookHandler {
       if (workflowstep.step_extensions == undefined) {
         workflowstep.step_extensions = [];
       }
-      if (
-        workflowstep.step_extensions[CoordinatesExtensionIdentifier] ==
-        undefined
-      ) {
-        workflowstep.step_extensions[CoordinatesExtensionIdentifier] =
-          new CoordinatesExtension();
+      if (workflowstep.step_extensions[CoordinatesExtensionIdentifier] == undefined) {
+        workflowstep.step_extensions[CoordinatesExtensionIdentifier] = new CoordinatesExtension();
       }
       delete workflowstep.step_extensions[CoordinatesExtensionIdentifier];
     }
   }
 
-  getCoordinatesExtension(
-    stepId: Identifier,
-  ): CoordinatesExtension | undefined {
+  getCoordinatesExtension(stepId: Identifier): CoordinatesExtension | undefined {
     let workflowstep = this.playbook.workflow[stepId];
     if (workflowstep == undefined) {
       throw Error('the shape does not correspond to any workflow step');
@@ -841,10 +771,8 @@ export default class PlaybookHandler {
       return undefined;
     }
     if (
-      workflowstep.step_extensions[CoordinatesExtensionIdentifier] ==
-        undefined &&
-      this.playbook.extension_definitions[CoordinatesExtensionIdentifier] !=
-        undefined
+      workflowstep.step_extensions[CoordinatesExtensionIdentifier] == undefined &&
+      this.playbook.extension_definitions[CoordinatesExtensionIdentifier] != undefined
     ) {
       return undefined;
     }
@@ -870,8 +798,4 @@ export default class PlaybookHandler {
   }
 }
 
-PlaybookHandler.$inject = [
-  'eventBus',
-  'config.playbook',
-  'config.executionStatus.json',
-];
+PlaybookHandler.$inject = ['eventBus', 'config.playbook', 'config.executionStatus.json'];

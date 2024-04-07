@@ -4,10 +4,7 @@ import BaseLayouter, {
   Point,
 } from 'diagram-js/lib/layout/BaseLayouter';
 import { assign } from 'min-dash';
-import {
-  repairConnection,
-  withoutRedundantPoints,
-} from 'diagram-js/lib/layout/ManhattanLayout';
+import { repairConnection, withoutRedundantPoints } from 'diagram-js/lib/layout/ManhattanLayout';
 import { Rect } from 'diagram-js/lib/layout/LayoutUtil';
 import CacaoUtils from '../../core/CacaoUtils';
 import CacaoFactory from '../../factory/CacaoFactory';
@@ -58,10 +55,7 @@ export default class CacaoLayouter extends BaseLayouter {
    * @param hints
    * @returns the waypoints updated by the layouter
    */
-  layoutConnection(
-    connection: Connection,
-    hints: LayoutConnectionHints = {},
-  ): Point[] {
+  layoutConnection(connection: Connection, hints: LayoutConnectionHints = {}): Point[] {
     let source: Rect = hints.source || connection.source;
     let target: Rect = hints.target || connection.target;
     let waypoints: Point | Point[] = connection.waypoints;
@@ -72,13 +66,10 @@ export default class CacaoLayouter extends BaseLayouter {
     let updatedWaypoints: Point[] | undefined;
 
     //waypoints = [];
-    console.log(waypoints);
+    // console.log(waypoints);
 
     if (!connectionStart) {
-      connectionStart = this.getConnectionDocking(
-        waypoints && waypoints[0],
-        source,
-      );
+      connectionStart = this.getConnectionDocking(waypoints && waypoints[0], source);
     }
 
     if (!connectionEnd) {
@@ -129,10 +120,7 @@ function alignPoint(point: Point): Point {
   return point;
 }
 
-function getAttachers(
-  source: Shape | undefined,
-  target: Shape | undefined,
-): string[] {
+function getAttachers(source: Shape | undefined, target: Shape | undefined): string[] {
   let MARGIN = 0;
   let verticalPos: 'bottom' | 'top' | 'middle';
   let horizontalPos: 'right' | 'left' | 'middle';

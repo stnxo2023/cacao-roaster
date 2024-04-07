@@ -71,6 +71,10 @@ import jsonSchemaStatusElement from '../../../../lib/workflow-status/schema/exec
 // Coordinate extension defitnition JSON schemas import
 import jsonCoordinatesExtensionDefinition from '../../../../lib/cacao-coordinates-extension/extension-definition/extension-definition--418ee24c-9cb1-46d9-afa5-309e01aabc7f.json';
 
+// Soarca JSON schema imports
+import jsonSchemaSoarcaSsh from '../../../../lib/cacao-json-schemas/schemas/agent-target/soarca-ssh.json';
+import jsonSchemaSoarcaHttpApi from '../../../../lib/cacao-json-schemas/schemas/agent-target/soarca-http-api.json';
+
 /* Imports of types from CACAO-js library */
 
 // Agent targets
@@ -246,6 +250,8 @@ export const schemaDictWithoutCommands: any = {
   'http-basic': jsonSchemaHttpBasic,
   oauth2: jsonSchemaOauth2,
   'user-auth': jsonSchemaUserAuth,
+  'soarca-ssh': jsonSchemaSoarcaSsh,
+  'soarca-http-api': jsonSchemaSoarcaHttpApi,
 };
 
 export const classDictWithoutAgentTarget: any = {
