@@ -1,7 +1,4 @@
-import {
-  classDictWithoutAgentTarget,
-  valueToDisplay,
-} from '../../../model/SchemaTypes';
+import { classDictWithoutAgentTarget, valueToDisplay } from '../../../model/SchemaTypes';
 import PlaybookHandler from '../../../model/PlaybookHandler';
 import { BasicInput } from '../BasicInput';
 import { PanelButton } from '../PanelButton';
@@ -37,10 +34,7 @@ export class ObjectInput extends BasicInput {
   private changeDisplayedValue() {
     if (Object.keys(valueToDisplay).includes(this._propertyType)) {
       valueToDisplay[this._propertyType].some(field => {
-        if (
-          this._initialValue[field] != undefined &&
-          this._initialValue[field] != ''
-        ) {
+        if (this._initialValue[field] != undefined && this._initialValue[field] != '') {
           this._displayedValue = this._initialValue[field];
           return true;
         }
@@ -62,11 +56,10 @@ export class ObjectInput extends BasicInput {
       Object.keys(this._initialValue).length === 0 &&
       classDictWithoutAgentTarget[this._propertyType]
     ) {
-      this._initialValue = new classDictWithoutAgentTarget[
-        this._propertyType
-      ]();
+      this._initialValue = new classDictWithoutAgentTarget[this._propertyType]();
     }
     let propType = 'command-data';
+    if (this._propertyType == 'external-reference') propType = 'external-reference';
     if (
       Object.keys(this._initialValue).length !== 0 &&
       classDictWithoutAgentTarget[this._initialValue['type']]
@@ -121,13 +114,9 @@ export class ObjectInput extends BasicInput {
     this._propertyPanel.addAllProperties();
 
     this.changeDisplayedValue();
-    this._itemButton = new PanelButton(
-      this._displayedValue,
-      this._container,
-      () => {
-        this.showPanel();
-      },
-    );
+    this._itemButton = new PanelButton(this._displayedValue, this._container, () => {
+      this.showPanel();
+    });
     this._itemButton.addClass('property__container');
     this._itemButton.addClass('container--simple');
     this._itemButton.addClass('container--disabled');
