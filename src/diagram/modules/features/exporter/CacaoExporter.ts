@@ -199,7 +199,7 @@ export default class CacaoExporter {
               playbook_type: cacaoPlaybook.playbook_types,
               playbook_standard: 'cacao',
               playbook_abstraction: 'template',
-              playbook_base64: Buffer.from(
+              playbook_bin: Buffer.from(
                 JSON.stringify(CacaoUtils.filterEmptyValues(cacaoPlaybook)),
               ).toString('base64'),
             },
