@@ -10,12 +10,12 @@ export default class Soarca {
   private _playbookHandler: PlaybookHandler;
   private _soarcaUrl: string = process.env.SOARCA_END_POINT || '';
   private _playbook: Playbook;
-  private _soarcaInfoText = `This is a fist alpha version of the SOARCA integration. 
-    Certain limitations exists: 
-    - Accepts only soarca_ssh and soarca_http-api agents.
-    - No support of out_args
-    - Only string variables are acceptes.
-    - Only == and != operators are supported.`;
+  private _soarcaInfoText = `This is the alpha version of the SOARCA integration. 
+  Certain limitations exist: 
+  - Accepts only soarca_ssh and soarca_http-api agents.
+  - No support for out_args
+  - Only string variables are accepted.
+  - Only == and != operators are supported.`;
   private _UrlExpresion = /^http(s*):\/\/\w+(\.\w+)*(:[0-9]+)?\/?$/;
   private _domainPortRegEx;
   static $inject: string[];
@@ -235,8 +235,7 @@ export default class Soarca {
         console.log('Response: ', response);
         if (response.status == 200) {
           response.json();
-        }
-        throw new Error('Failed to trigger playbook');
+        } else throw new Error('Failed to trigger playbook');
       })
       .then(data => {
         console.log('Success:', data);
