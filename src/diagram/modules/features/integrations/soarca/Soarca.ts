@@ -1,10 +1,10 @@
-import PlaybookHandler from '../../../model/PlaybookHandler';
+import type PlaybookHandler from '../../../model/PlaybookHandler';
 import CacaoUtils from '../../../core/CacaoUtils';
-import { ActionStep, Playbook, WorkflowStep } from 'lib/cacao2-js';
+import type { ActionStep, Playbook } from 'lib/cacao2-js';
 import Ajv2019 from 'ajv/dist/2019';
 import draft7MetaSchema from 'ajv/dist/refs/json-schema-draft-07.json';
 import { schemaDictAgentTarget, schemaDictWithoutAgentTarget } from './../../../model/SchemaTypes';
-import { Schema } from 'css-minimizer-webpack-plugin';
+import type { Schema } from 'css-minimizer-webpack-plugin';
 
 export default class Soarca {
   private _playbookHandler: PlaybookHandler;
@@ -15,8 +15,12 @@ export default class Soarca {
   - Accepts only soarca_ssh and soarca_http-api agents.
   - No support for out_args
   - Only string variables are accepted.
-  - Only == and != operators are supported.`;
-  private _UrlExpresion = /^http(s*):\/\/\w+(\.\w+)*(:[0-9]+)?\/?$/;
+  - Only == and != operators are supported.-
+Triggering the playbook will set its created and modified timestamps
+if not set.`;
+  //  private _UrlExpresion = /^http(s*):\/\/\w+(\.\w+)*(:[0-9]+)?\/?$/;
+  private _UrlExpresion =
+    /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/;
   private _domainPortRegEx;
   static $inject: string[];
 
@@ -27,9 +31,9 @@ export default class Soarca {
   }
 
   showDialog() {
-    let dialog = document.createElement('dialog') as HTMLDialogElement;
+    const dialog = document.createElement('dialog') as HTMLDialogElement;
     dialog.classList.add('dialog', 'integration');
-    dialog.addEventListener('keydown', function (event) {
+    dialog.addEventListener('keydown', event => {
       if (event?.code?.toLowerCase() === 'escape') {
         dialog.close();
         dialog.remove();
@@ -40,31 +44,31 @@ export default class Soarca {
 
     dialog.appendChild(this._getTitleHTMLElement());
 
-    let identifierContainer = this._getPropertyHTMLElement(
+    const identifierContainer = this._getPropertyHTMLElement(
       'SOARCA end point',
       'soraca-end_point',
       process.env.SOARCA_END_POINT || '',
     );
     dialog.appendChild(identifierContainer);
-    let soarcaInfoContainer = document.createElement('div');
-    let soarcaInfo = document.createElement('pre');
+    const soarcaInfoContainer = document.createElement('div');
+    const soarcaInfo = document.createElement('pre');
     soarcaInfo.className = 'integration-info';
     soarcaInfo.innerHTML = this._soarcaInfoText;
     soarcaInfoContainer.appendChild(soarcaInfo);
     dialog.appendChild(soarcaInfoContainer);
 
-    let buttonContainer = document.createElement('div');
+    const buttonContainer = document.createElement('div');
     buttonContainer.className = 'dialog__buttonList';
 
-    let errorMessage = document.createElement('span');
+    const errorMessage = document.createElement('span');
     errorMessage.classList.add('error_message', 'hidden');
     errorMessage.id = 'playbook-error-message';
     errorMessage.innerHTML = '';
-    let errorMessageDiv = document.createElement('div');
+    const errorMessageDiv = document.createElement('div');
     errorMessageDiv.className = 'error_message-div';
     errorMessageDiv.appendChild(errorMessage);
-    let sendAndTriggerPlaybook = this._getButtonHTMLElement('Send and Trigger Playbook', true);
-    let cancel = this._getButtonHTMLElement('Cancel', false);
+    const sendAndTriggerPlaybook = this._getButtonHTMLElement('Send and Trigger Playbook', true);
+    const cancel = this._getButtonHTMLElement('Cancel', false);
 
     buttonContainer.appendChild(errorMessageDiv);
     buttonContainer.appendChild(cancel);
@@ -83,15 +87,17 @@ export default class Soarca {
         this._soarcaUrl = (
           document.getElementById('soraca-end_point-input') as HTMLInputElement
         ).value;
-        let soarcaInputError = document.getElementById('soraca-end_point-error') as HTMLSpanElement;
-        let playbookError = document.getElementById('playbook-error-message') as HTMLSpanElement;
+        const soarcaInputError = document.getElementById(
+          'soraca-end_point-error',
+        ) as HTMLSpanElement;
+        const playbookError = document.getElementById('playbook-error-message') as HTMLSpanElement;
 
         // validate soarca url
-        if (!this._domainPortRegEx.test(this._soarcaUrl) && this._soarcaUrl != '') {
+        if (!this._domainPortRegEx.test(this._soarcaUrl) && this._soarcaUrl !== '') {
           noErrors = false;
           soarcaInputError.innerHTML = 'Provided input is not a valid URL.';
           soarcaInputError.classList.remove('hidden');
-        } else if (this._soarcaUrl == '') {
+        } else if (this._soarcaUrl === '') {
           noErrors = false;
           soarcaInputError.innerHTML = 'This field is required.';
           soarcaInputError.classList.remove('hidden');
@@ -134,8 +140,8 @@ export default class Soarca {
     });
     ajv.addMetaSchema(draft7MetaSchema);
     this._loadSchemas(ajv);
-    let isValid = ajv.validate(
-      schemaDictWithoutAgentTarget['playbook'],
+    const isValid = ajv.validate(
+      schemaDictWithoutAgentTarget.playbook,
       CacaoUtils.filterEmptyValues(this._playbookHandler.playbook),
     );
     console.log('Schema errors: ', ajv.errors);
@@ -154,31 +160,31 @@ export default class Soarca {
   }
 
   private _getTitleHTMLElement(): HTMLElement {
-    let titleDialog = document.createElement('div') as HTMLDivElement;
+    const titleDialog = document.createElement('div') as HTMLDivElement;
     titleDialog.innerHTML = 'SOARCA Integration v0.1.0';
     titleDialog.className = 'dialog__title';
     return titleDialog;
   }
 
-  private _getPropertyHTMLElement(label: string, id: string, value: string = ''): HTMLElement {
-    let propertyContainer = document.createElement('div');
+  private _getPropertyHTMLElement(label: string, id: string, value = ''): HTMLElement {
+    const propertyContainer = document.createElement('div');
     propertyContainer.className = 'dialog__property';
     propertyContainer.id = id;
 
-    let labelElement = document.createElement('label');
+    const labelElement = document.createElement('label');
     labelElement.innerHTML = label;
     labelElement.className = 'property__label';
-    labelElement.htmlFor = id + '-input';
+    labelElement.htmlFor = `${id}-input`;
 
-    let inputElement = document.createElement('input');
+    const inputElement = document.createElement('input');
     inputElement.className = 'property__input';
-    inputElement.id = id + '-input';
+    inputElement.id = `${id}-input`;
     inputElement.value = value;
-    inputElement.name = id + '-input';
+    inputElement.name = `${id}-input`;
 
-    let errorMessage = document.createElement('span');
+    const errorMessage = document.createElement('span');
     errorMessage.classList.add('error_message', 'hidden');
-    errorMessage.id = id + '-error';
+    errorMessage.id = `${id}-error`;
     errorMessage.innerHTML = '';
 
     propertyContainer.appendChild(labelElement);
@@ -188,7 +194,7 @@ export default class Soarca {
   }
 
   private _getButtonHTMLElement(label: string, isPrimary = true): HTMLElement {
-    let button = document.createElement('button');
+    const button = document.createElement('button');
     button.className = 'dialog__button';
     button.innerText = label;
     if (isPrimary) button.classList.add('button--primary');
@@ -224,7 +230,7 @@ export default class Soarca {
       'Triggering playbook...',
       JSON.stringify(CacaoUtils.filterEmptyValues(this._playbook)),
     );
-    fetch(this._soarcaUrl + '/trigger/playbook', {
+    fetch(`${this._soarcaUrl}/trigger/playbook`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -233,7 +239,7 @@ export default class Soarca {
     })
       .then(response => {
         console.log('Response: ', response);
-        if (response.status == 200) {
+        if (response.status === 200) {
           response.json();
         } else throw new Error('Failed to trigger playbook');
       })
@@ -252,9 +258,9 @@ export default class Soarca {
     const soarcaHttpApiAgentID = 'soarca--00020001-1000-1000-a000-000100010001';
     this._playbook = Object.assign({}, this._playbookHandler.playbook);
 
-    let agentDictionary = this._playbook.agent_definitions;
+    const agentDictionary = this._playbook.agent_definitions;
 
-    for (let agentID in agentDictionary) {
+    for (const agentID in agentDictionary) {
       if (agentID.includes('soarca-ssh')) {
         agentDictionary[agentID].type = 'soarca';
         agentDictionary[agentID].name = 'soarca-ssh';
@@ -267,10 +273,10 @@ export default class Soarca {
         delete agentDictionary[agentID];
       }
     }
-    let workflowSteps = this._playbookHandler.playbook.workflow;
-    for (let workflow in workflowSteps) {
+    const workflowSteps = this._playbookHandler.playbook.workflow;
+    for (const workflow in workflowSteps) {
       if (workflow.includes('action--')) {
-        let actionStep = workflowSteps[workflow] as ActionStep;
+        const actionStep = workflowSteps[workflow] as ActionStep;
         if (actionStep.agent.includes('soarca-ssh')) {
           actionStep.agent = soarcaSshAgentID;
           this._playbookHandler.playbook.workflow[workflow] = actionStep;
