@@ -118,6 +118,7 @@
   max-width: 600px;
   width: 90%;
   max-height: 70%;
+  align-items: stretch;
 }
 
 .dialog__title {
@@ -205,11 +206,11 @@
   border-radius: 5px;
   max-width: 140px;
   color: white;
+  box-sizing: border-box;
 }
 
 .dialog__buttonList > button:hover {
   padding: 4px;
-  margin-left: 10px;
   border-radius: 5px;
   border: 1px solid blueviolet;
   cursor: pointer;
@@ -253,6 +254,8 @@
   color: red;
   font-size: 11px;
   padding: 0px 5px;
+  max-width: 56ch;
+  align-content: space-around;
 }
 
 .integration-info {
@@ -292,4 +295,42 @@
 
 .hidden {
   display: none;
+}
+
+.ping_status_icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border-width: 1px;
+  display: none;
+  align-self: center;
+  margin-right: 8px;
+  margin-left: 8px;
+}
+
+.ping_status_icon--success {
+  display: inline-block;
+  background-color: green;
+  border-color: rgb(0, 104, 0);
+}
+
+.ping_status_icon--error {
+  display: inline-block;
+  background-color: red;
+  border-color: rgb(199, 0, 0);
+}
+
+.ping_status_text {
+  width: fit-content;
+}
+
+.messagePingContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.error_message-div {
+  height: 33px;
 }

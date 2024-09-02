@@ -6,93 +6,88 @@ import draft7MetaSchema from 'ajv/dist/refs/json-schema-draft-07.json';
 import { schemaDictAgentTarget, schemaDictWithoutAgentTarget } from './../../../model/SchemaTypes';
 import type { Schema } from 'css-minimizer-webpack-plugin';
 
-export default class Soarca {
-  private _playbookHandler: PlaybookHandler;
-  private _soarcaUrl: string = process.env.SOARCA_END_POINT || '';
-  private _playbook: Playbook;
-  private _soarcaInfoText = `This is the alpha version of the SOARCA integration. 
-  Certain limitations exist: 
-  - Accepts only soarca_ssh and soarca_http-api agents.
-  - No support for out_args
-  - Only string variables are accepted.
-  - Only == and != operators are supported.-
+const SOARCA_END_POINT = process.env.SOARCA_END_POINT || '';
+const SOARCA_INTEGRATION_TITLE = 'SOARCA Integration v0.2.0';
+const PING_SOARCA_BUTTON_TEXT = 'Ping SOARCA';
+const SOARCA_INFO_TEXT = `This is the alpha version of the SOARCA integration. 
+Certain limitations exist: 
+- Accepts only soarca_ssh and soarca_http-api agents.
+- No support for out_args
+- Only string variables are accepted.
+- Only == and != operators are supported.
 Triggering the playbook will set its created and modified timestamps
 if not set.`;
-  //  private _UrlExpresion = /^http(s*):\/\/\w+(\.\w+)*(:[0-9]+)?\/?$/;
-  private _UrlExpresion =
-    /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/;
-  private _domainPortRegEx;
+
+const DOMAIN_PORT_REGEX =
+  /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})|(^https?:\/\/localhost:[0-9]{1,5}\/?([-a-zA-Z0-9()@:%_\+.~#?&\/=]*))/gi;
+
+export default class Soarca {
+  private _playbookHandler: PlaybookHandler;
+  private _soarcaUrl: string;
+  private _playbook: Playbook;
+  private _soarcaIntegrationTitle: string;
+  private _pingSoarcaButtonText: string;
+  private _soarcaInfoText: string;
+  private _domainPortRegEx: RegExp;
   static $inject: string[];
 
   constructor(playbookHandler: PlaybookHandler) {
     this._playbookHandler = playbookHandler;
     this._playbook = Object.assign({}, this._playbookHandler.playbook);
-    this._domainPortRegEx = new RegExp(this._UrlExpresion);
+    this._soarcaUrl = SOARCA_END_POINT;
+    this._soarcaIntegrationTitle = SOARCA_INTEGRATION_TITLE;
+    this._pingSoarcaButtonText = PING_SOARCA_BUTTON_TEXT;
+    this._soarcaInfoText = SOARCA_INFO_TEXT;
+    this._domainPortRegEx = DOMAIN_PORT_REGEX;
   }
 
+  /**
+   * Shows the integration dialog.
+   */
   showDialog() {
     const dialog = document.createElement('dialog') as HTMLDialogElement;
     dialog.classList.add('dialog', 'integration');
-    dialog.addEventListener('keydown', event => {
-      if (event?.code?.toLowerCase() === 'escape') {
-        dialog.close();
-        dialog.remove();
-        document.body.classList.remove('blurred');
-      }
-    });
+    dialog.addEventListener('keydown', this._handleDialogKeydown.bind(this, dialog));
     document.body.appendChild(dialog);
 
-    dialog.appendChild(this._getTitleHTMLElement());
+    // Building the structure of the SOARCA integration dialog
+    this._buildSoarcaIntegrationDialog(dialog);
 
-    const identifierContainer = this._getPropertyHTMLElement(
-      'SOARCA end point',
-      'soraca-end_point',
-      process.env.SOARCA_END_POINT || '',
-    );
-    dialog.appendChild(identifierContainer);
-    const soarcaInfoContainer = document.createElement('div');
-    const soarcaInfo = document.createElement('pre');
-    soarcaInfo.className = 'integration-info';
-    soarcaInfo.innerHTML = this._soarcaInfoText;
-    soarcaInfoContainer.appendChild(soarcaInfo);
-    dialog.appendChild(soarcaInfoContainer);
+    // Cache DOM elements
+    const soarcaUrlInput = dialog.querySelector('#soarca-end_point-input') as HTMLInputElement;
+    const pingSoarca = dialog.querySelector('#ping-soarca') as HTMLButtonElement;
+    const statusIcon = dialog.querySelector('.ping_status_icon') as HTMLSpanElement;
+    const statusText = dialog.querySelector('.ping_status_text') as HTMLSpanElement;
+    const triggerPlaybook = dialog.querySelector('#soarca-trigger-playbook') as HTMLButtonElement;
+    const cancel = dialog.querySelector('#soarca-cancel') as HTMLButtonElement;
 
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'dialog__buttonList';
+    // Listen to changes in the soarca url input, removing the ping status when changed.
+    soarcaUrlInput.addEventListener('input', () => this._removePingStatus());
 
-    const errorMessage = document.createElement('span');
-    errorMessage.classList.add('error_message', 'hidden');
-    errorMessage.id = 'playbook-error-message';
-    errorMessage.innerHTML = '';
-    const errorMessageDiv = document.createElement('div');
-    errorMessageDiv.className = 'error_message-div';
-    errorMessageDiv.appendChild(errorMessage);
-    const sendAndTriggerPlaybook = this._getButtonHTMLElement('Send and Trigger Playbook', true);
-    const cancel = this._getButtonHTMLElement('Cancel', false);
-
-    buttonContainer.appendChild(errorMessageDiv);
-    buttonContainer.appendChild(cancel);
-    buttonContainer.appendChild(sendAndTriggerPlaybook);
-    dialog.appendChild(buttonContainer);
+    // Pinging SOARCA and displaying the status
+    pingSoarca.addEventListener('click', () => {
+      this._pingSoarca(statusIcon, statusText);
+    });
 
     document.body.classList.add('blurred');
     dialog.showModal();
 
     return new Promise<boolean>(resolve => {
-      sendAndTriggerPlaybook.addEventListener('click', () => {
+      // Adding event listeners to the trigger Playbook button
+      triggerPlaybook.addEventListener('click', () => {
         let noErrors = true;
         this._soarcaAgentsPreparationPOC();
 
         // Get the soarca url and error message elements
         this._soarcaUrl = (
-          document.getElementById('soraca-end_point-input') as HTMLInputElement
+          document.getElementById('soarca-end_point-input') as HTMLInputElement
         ).value;
         const soarcaInputError = document.getElementById(
-          'soraca-end_point-error',
+          'soarca-end_point-error',
         ) as HTMLSpanElement;
         const playbookError = document.getElementById('playbook-error-message') as HTMLSpanElement;
 
-        // validate soarca url
+        // Check if populated and validate soarca url
         if (!this._domainPortRegEx.test(this._soarcaUrl) && this._soarcaUrl !== '') {
           noErrors = false;
           soarcaInputError.innerHTML = 'Provided input is not a valid URL.';
@@ -103,17 +98,16 @@ if not set.`;
           soarcaInputError.classList.remove('hidden');
         } else soarcaInputError.classList.add('hidden');
 
-        // validate playbook
+        // validate the playbook, if not valid show error message
         if (!this._validatePlaybook()) {
           noErrors = false;
           playbookError.innerText =
-            'Only valid playbook can be send. Please check the error messages in the corner.';
+            'Only valid playbook can be send. Please check the error messages in the bottom-left corner.';
           playbookError.classList.remove('hidden');
         } else playbookError.classList.add('hidden');
 
-        // send and trigger playbook, remove the dialog
+        // Trigger the playbook and remove the dialog
         if (noErrors) {
-          // this._sendPlaybookToSoarca();
           this._triggerPlaybook();
           dialog.close();
           dialog.remove();
@@ -122,6 +116,7 @@ if not set.`;
         }
       });
 
+      // close the dialog
       cancel.addEventListener('click', () => {
         dialog.close();
         dialog.remove();
@@ -129,6 +124,49 @@ if not set.`;
         resolve(false);
       });
     });
+  }
+
+  // The HTML structure of the SOARCA integration dialog - aka view
+  private _buildSoarcaIntegrationDialog(dialog: HTMLDialogElement) {
+    dialog.innerHTML = `
+      <h1 class="dialog__title">${this._soarcaIntegrationTitle}</h1>
+
+      <div class="dialog__property">
+        <label class="property__label" for="soarca-end_point-input">SOARCA end point</label>
+        <input class="property__input" id="soarca-end_point-input" name="soarca-end_point-input" value="${process.env.SOARCA_END_POINT || ''}" oninput="${this._removePingStatus()}" >
+        <div class="messagePingContainer">
+          <div>
+            <span class="error_message hidden" id="soarca-end_point-error"></span>
+          </div>  
+          <div class="dialog__buttonList">
+            <span class="ping_status_icon"></span>
+            <span class="ping_status_text"></span>
+            <button id="ping-soarca" class="dialog__button button--primary">${this._pingSoarcaButtonText}</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dialog__property">
+        <label class="property__label" for="soarca-integration-input">Limitations</label>
+        <textarea class="property__input" readonly>${this._soarcaInfoText}</textarea>
+      </div>
+
+      <div class="dialog__buttonList">
+        <div class="error_message-div">
+          <span class="error_message hidden" id="playbook-error-message"></span>
+        </div>
+        <button id="soarca-cancel" class="dialog__button button--secondary">Cancel</button>
+        <button id="soarca-trigger-playbook" class="dialog__button button--primary">Trigger Playbook</button>
+      </div>
+    `;
+  }
+
+  private _handleDialogKeydown(dialog: HTMLDialogElement, event: KeyboardEvent): void {
+    if (event?.code?.toLowerCase() === 'escape') {
+      dialog.close();
+      dialog.remove();
+      document.body.classList.remove('blurred');
+    }
   }
 
   private _validatePlaybook(): boolean {
@@ -159,77 +197,49 @@ if not set.`;
     }
   }
 
-  private _getTitleHTMLElement(): HTMLElement {
-    const titleDialog = document.createElement('div') as HTMLDivElement;
-    titleDialog.innerHTML = 'SOARCA Integration v0.1.0';
-    titleDialog.className = 'dialog__title';
-    return titleDialog;
+  /**
+   * Pings the SOARCA endpoint and updates the status.
+   * @param statusIcon The status icon element.
+   * @param statusText The status text element.
+   */
+  private _pingSoarca = (statusIcon: HTMLSpanElement, statusText: HTMLSpanElement) => {
+    this._soarcaUrl = (
+      document.getElementById('soarca-end_point-input') as HTMLInputElement
+    )?.value.trim();
+    const pingSoarcaButton = document.getElementById('ping-soarca') as HTMLButtonElement;
+    pingSoarcaButton.innerHTML = 'Checking...';
+    setTimeout(() => {
+      fetch(`${this._soarcaUrl}/status/ping`)
+        .then(response => {
+          if (response.status === 200) {
+            statusIcon.classList.remove('ping_status_icon--error');
+            statusIcon.classList.add('ping_status_icon--success');
+            statusText.innerText = 'Alive';
+          } else {
+            statusIcon.classList.remove('ping_status_icon--success');
+            statusIcon.classList.add('ping_status_icon--error');
+            statusText.innerText = 'Not responding';
+          }
+        })
+        .catch(error => {
+          statusIcon.classList.remove('ping_status_icon--success');
+          statusIcon.classList.add('ping_status_icon--error');
+          statusText.innerText = 'Not responding';
+        });
+      pingSoarcaButton.innerText = this._pingSoarcaButtonText;
+    }, 300);
+  };
+
+  private _removePingStatus() {
+    const statusIcon = document.querySelector('.ping_status_icon') as HTMLSpanElement;
+    const statusText = document.querySelector('.ping_status_text') as HTMLSpanElement;
+    if (statusIcon && statusText) {
+      statusIcon.classList.remove('ping_status_icon--success', 'ping_status_icon--error');
+      statusText.innerText = '';
+    }
   }
-
-  private _getPropertyHTMLElement(label: string, id: string, value = ''): HTMLElement {
-    const propertyContainer = document.createElement('div');
-    propertyContainer.className = 'dialog__property';
-    propertyContainer.id = id;
-
-    const labelElement = document.createElement('label');
-    labelElement.innerHTML = label;
-    labelElement.className = 'property__label';
-    labelElement.htmlFor = `${id}-input`;
-
-    const inputElement = document.createElement('input');
-    inputElement.className = 'property__input';
-    inputElement.id = `${id}-input`;
-    inputElement.value = value;
-    inputElement.name = `${id}-input`;
-
-    const errorMessage = document.createElement('span');
-    errorMessage.classList.add('error_message', 'hidden');
-    errorMessage.id = `${id}-error`;
-    errorMessage.innerHTML = '';
-
-    propertyContainer.appendChild(labelElement);
-    propertyContainer.appendChild(inputElement);
-    propertyContainer.appendChild(errorMessage);
-    return propertyContainer;
-  }
-
-  private _getButtonHTMLElement(label: string, isPrimary = true): HTMLElement {
-    const button = document.createElement('button');
-    button.className = 'dialog__button';
-    button.innerText = label;
-    if (isPrimary) button.classList.add('button--primary');
-    else button.classList.add('button--secondary');
-    return button;
-  }
-
-  // private _sendPlaybookToSoarca() {
-  //     const playbook = CacaoUtils.filterEmptyValues(this._playbook);
-  //     this._soarcaUrl = (document.getElementById('soraca-end_point-input') as HTMLInputElement)?.value;
-
-  //     fetch(this._soarcaUrl + "/playbook/", {
-  //         mode: 'no-cors',
-  //         method: 'POST',
-  //         headers: {
-  //             'Content-Type': 'application/json',
-  //             'accept': 'application/json'
-  //         },
-  //         body: JSON.stringify(playbook),
-  //     })
-  //         .then((response) => response.json())
-  //         .then((data) => {
-  //             console.log('Success:', data);
-  //             console.log('Send Playbook with ID:', this._playbook.id);
-  //         })
-  //         .catch((error) => {
-  //             console.error('Error:', error);
-  //         });
-  // }
 
   private _triggerPlaybook() {
-    console.log(
-      'Triggering playbook...',
-      JSON.stringify(CacaoUtils.filterEmptyValues(this._playbook)),
-    );
     fetch(`${this._soarcaUrl}/trigger/playbook`, {
       method: 'POST',
       headers: {
@@ -261,12 +271,12 @@ if not set.`;
     const agentDictionary = this._playbook.agent_definitions;
 
     for (const agentID in agentDictionary) {
-      if (agentID.includes('soarca-ssh')) {
+      if (agentID?.includes('soarca-ssh')) {
         agentDictionary[agentID].type = 'soarca';
         agentDictionary[agentID].name = 'soarca-ssh';
         agentDictionary[soarcaSshAgentID] = agentDictionary[agentID];
         delete agentDictionary[agentID];
-      } else if (agentID.includes('soarca-http-api')) {
+      } else if (agentID?.includes('soarca-http-api')) {
         agentDictionary[agentID].type = 'soarca';
         agentDictionary[agentID].name = 'soarca-http-api';
         agentDictionary[soarcaHttpApiAgentID] = agentDictionary[agentID];
@@ -275,12 +285,12 @@ if not set.`;
     }
     const workflowSteps = this._playbookHandler.playbook.workflow;
     for (const workflow in workflowSteps) {
-      if (workflow.includes('action--')) {
+      if (workflow?.includes('action--')) {
         const actionStep = workflowSteps[workflow] as ActionStep;
-        if (actionStep.agent.includes('soarca-ssh')) {
+        if (actionStep.agent?.includes('soarca-ssh')) {
           actionStep.agent = soarcaSshAgentID;
           this._playbookHandler.playbook.workflow[workflow] = actionStep;
-        } else if (actionStep.agent.includes('soarca-http-api')) {
+        } else if (actionStep.agent?.includes('soarca-http-api')) {
           actionStep.agent = soarcaHttpApiAgentID;
           this._playbookHandler.playbook.workflow[workflow] = actionStep;
         }
