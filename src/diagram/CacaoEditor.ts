@@ -1,14 +1,14 @@
 import Diagram from 'diagram-js';
 
-import PlaybookHandler from './modules/model/PlaybookHandler';
+import type PlaybookHandler from './modules/model/PlaybookHandler';
 
 import ModelingModule from 'diagram-js/lib/features/modeling';
 import MoveModule from 'diagram-js/lib/features/move';
 import SelectionModule from 'diagram-js/lib/features/selection';
 import ConnectionPreviewModule from 'diagram-js/lib/features/connection-preview';
 import GlobalConnectModule from 'diagram-js/lib/features/global-connect';
-import Canvas from 'diagram-js/lib/core/Canvas';
-import ElementFactory from 'diagram-js/lib/core/ElementFactory';
+import type Canvas from 'diagram-js/lib/core/Canvas';
+import type ElementFactory from 'diagram-js/lib/core/ElementFactory';
 import OverlaysModule from 'diagram-js/lib/features/overlays';
 import GridSnappingModule from 'diagram-js/lib/features/grid-snapping';
 import ResizeModule from 'diagram-js/lib/features/resize';
@@ -36,130 +36,126 @@ import CacaoSidePanel from './modules/features/side-panel';
 import CacaoContextPad from './modules/features/context-pad';
 import CacaoAutoPlace from './modules/features/auto-place';
 import CacaoRules from './modules/features/rules';
-import { Root } from 'diagram-js/lib/model/Types';
+import type { Root } from 'diagram-js/lib/model/Types';
 import CacaoConnect from './modules/features/connect';
 import CacaoPlaybookHandler from './modules/model';
 import CacaoExporter from './modules/features/exporter';
 import CacaoValidator from './modules/features/validator';
 import CacaoImporter from './modules/features/importer';
 import CacaoHeader from './modules/features/header';
-import EventBus from 'diagram-js/lib/core/EventBus';
-import { Playbook } from 'lib/cacao2-js/src/Playbook';
+import type EventBus from 'diagram-js/lib/core/EventBus';
+import type { Playbook } from 'lib/cacao2-js/src/Playbook';
 
 import gridModule from 'diagram-js-grid';
 import minimapModule from 'diagram-js-minimap';
-import CommandStack from 'diagram-js/lib/command/CommandStack';
+import type CommandStack from 'diagram-js/lib/command/CommandStack';
 import CacaoSigning from './modules/features/signing';
 import CacaoDialog from './modules/core/CacaoDialog';
+import IntegrationLogWindow from './modules/features/integration-logs';
 
 export default class CacaoEditor {
-  container: HTMLElement;
-  canvasContainer: HTMLElement;
-  diagram: Diagram;
-  canvas: Canvas;
-  elementFactory: ElementFactory;
-  root: Root;
-  eventBus: EventBus;
-  playbookHandler: PlaybookHandler;
-  commandStack: CommandStack;
+	container: HTMLElement;
+	canvasContainer: HTMLElement;
+	diagram: Diagram;
+	canvas: Canvas;
+	elementFactory: ElementFactory;
+	root: Root;
+	eventBus: EventBus;
+	playbookHandler: PlaybookHandler;
+	commandStack: CommandStack;
 
-  constructor(
-    container: HTMLElement,
-    playbook: Playbook,
-    executionStatus: any = {},
-  ) {
-    this.container = container;
-    this.canvasContainer = document.createElement('div');
-    this.canvasContainer.className = 'canvas';
-    container.appendChild(this.canvasContainer);
+	constructor(container: HTMLElement, playbook: Playbook, executionStatus: any = {}) {
+		this.container = container;
+		this.canvasContainer = document.createElement('div');
+		this.canvasContainer.className = 'canvas';
+		container.appendChild(this.canvasContainer);
 
-    this.diagram = new Diagram({
-      canvas: {
-        container: this.canvasContainer,
-      },
-      minimap: { open: true },
-      executionStatus: {
-        json: executionStatus,
-      },
-      container: this.container,
-      playbook: playbook,
-      modules: [...this.builtinModules, ...this.customModules],
-    });
+		this.diagram = new Diagram({
+			canvas: {
+				container: this.canvasContainer,
+			},
+			minimap: { open: true },
+			executionStatus: {
+				json: executionStatus,
+			},
+			container: this.container,
+			playbook: playbook,
+			modules: [...this.builtinModules, ...this.customModules],
+		});
 
-    this.canvas = this.diagram.get('canvas');
-    this.eventBus = this.diagram.get('eventBus');
-    this.elementFactory = this.diagram.get('elementFactory');
-    this.root = this.elementFactory.createRoot();
-    this.canvas.setRootElement(this.root);
+		this.canvas = this.diagram.get('canvas');
+		this.eventBus = this.diagram.get('eventBus');
+		this.elementFactory = this.diagram.get('elementFactory');
+		this.root = this.elementFactory.createRoot();
+		this.canvas.setRootElement(this.root);
 
-    this.playbookHandler = this.diagram.get('playbookHandler');
-    this.commandStack = this.diagram.get('commandStack');
-    this.eventBus.fire('editor.loaded');
-  }
+		this.playbookHandler = this.diagram.get('playbookHandler');
+		this.commandStack = this.diagram.get('commandStack');
+		this.eventBus.fire('editor.loaded');
+	}
 
-  get playbook() {
-    return this.playbookHandler.playbook;
-  }
+	get playbook() {
+		return this.playbookHandler.playbook;
+	}
 
-  addListener(listener: () => void) {
-    this.eventBus.on('playbook.changed', listener);
-  }
+	addListener(listener: () => void) {
+		this.eventBus.on('playbook.changed', listener);
+	}
 
-  async canLeave(): Promise<boolean> {
-    if (
-      await CacaoDialog.showConfirm(
-        'Are you sure you want to leave this tab?',
-        'You will not be able to recover the current playbook. <br>You can save it first using the EXPORT button before leaving.',
-      )
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+	async canLeave(): Promise<boolean> {
+		if (
+			await CacaoDialog.showConfirm(
+				'Are you sure you want to leave this tab?',
+				'You will not be able to recover the current playbook. <br>You can save it first using the EXPORT button before leaving.',
+			)
+		)
+			return true;
+		return false;
+	}
 
-  // default modules provided by the toolbox
-  builtinModules = [
-    ModelingModule,
-    MoveModule,
-    SelectionModule,
-    ConnectionPreviewModule,
-    GlobalConnectModule,
-    OverlaysModule,
-    AutoScrollModule,
-    BendpointsModule,
-    CreateModule,
-    KeyboardMoveSelectionModule,
-    GridSnappingModule,
-    ResizeModule,
+	// default modules provided by the toolbox
+	builtinModules = [
+		ModelingModule,
+		MoveModule,
+		SelectionModule,
+		ConnectionPreviewModule,
+		GlobalConnectModule,
+		OverlaysModule,
+		AutoScrollModule,
+		BendpointsModule,
+		CreateModule,
+		KeyboardMoveSelectionModule,
+		GridSnappingModule,
+		ResizeModule,
 
-    KeyboardMoveModule,
-    MoveCanvasModule,
-    TouchModule,
-    ZoomScrollModule,
-    HandToolModule,
-    SpaceToolModule,
-    LassoToolModule,
-    gridModule,
-    minimapModule,
-  ];
+		KeyboardMoveModule,
+		MoveCanvasModule,
+		TouchModule,
+		ZoomScrollModule,
+		HandToolModule,
+		SpaceToolModule,
+		LassoToolModule,
+		gridModule,
+		minimapModule,
+	];
 
-  customModules = [
-    CacaoRenderer,
-    CacaoImporter,
-    CacaoPaletteProvider,
-    CacaoRules,
-    CacaoModeler,
-    CacaoConnectSnapping,
-    CacaoContextPad,
-    CacaoSidePanel,
-    CacaoPlaybookHandler,
-    CacaoContextPad,
-    CacaoAutoPlace,
-    CacaoConnect,
-    CacaoExporter,
-    CacaoValidator,
-    CacaoHeader,
-    CacaoSigning,
-  ];
+	customModules = [
+		CacaoRenderer,
+		CacaoImporter,
+		CacaoPaletteProvider,
+		CacaoRules,
+		CacaoModeler,
+		CacaoConnectSnapping,
+		CacaoContextPad,
+		CacaoSidePanel,
+		CacaoPlaybookHandler,
+		CacaoContextPad,
+		CacaoAutoPlace,
+		CacaoConnect,
+		CacaoExporter,
+		CacaoValidator,
+		CacaoHeader,
+		CacaoSigning,
+		IntegrationLogWindow,
+	];
 }

@@ -12,10 +12,20 @@
 		"attributePosition": "auto"
 	},
 	"organizeImports": { "enabled": true },
-	"linter": { "enabled": true, "rules": { "recommended": true, "suspicious": {
-		"noImplicitAnyLet": "warn",
-		"noExplicitAny": "warn"
-	} } },
+	"linter": { 
+		"enabled": true, 
+		"rules": { 
+			"recommended": true, 
+			"suspicious": {
+				"noImplicitAnyLet": "off",
+				"noExplicitAny": "off",
+				"noUnsafeDeclarationMerging": "info"
+			},
+			"style": {
+				"noParameterAssign": "off"
+			}
+		}
+	},
 	"javascript": {
 		"formatter": {
 			"jsxQuoteStyle": "double",
@@ -31,7 +41,7 @@
 	},
 	"css": {
 		"parser": { "cssModules": true },
-		"formatter": { "enabled": true },
+		"formatter": { "enabled": true},
 		"linter": { "enabled": true }
 	}
 }

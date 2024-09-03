@@ -1,8 +1,8 @@
-.validator-container {
+.integration_logs_window-container {
     display: flex;
     position: fixed;
     bottom: 5px;
-    left: 5px;
+    right: 5px;
     padding: 5px;
     font-size: 12px;
     color: #000000;
@@ -12,9 +12,14 @@
     border: solid 1px rgb(185, 188, 197);
     border-radius: 5px;
     justify-content: center;
+    transition-duration: 200ms;
 }
 
-.validator-icon {
+.integration_logs_window-container--move {
+    right: 360px !important;
+}
+
+.integration_logs_window-icon {
     height: 15px;
     width: 15px;
 
@@ -23,38 +28,29 @@
     background-position: center;
 }
 
-.validator-icon-correct {
-    background-image: url('../assets/icons/correct.svg');
-}
-
-.validator-icon-error {
+.integration_logs_window-icon-log {
     background-image: url('../assets/icons/error.svg');
 }
 
-.validator-correct {
-    background: #dbffd6 !important;
-    color: #278811 !important;
-}
-
-.validator-error {
+.integration_logs_window-log {
     background: #ffcbc8 !important;
     color: #a50f0f !important;
 }
 
-.validator-message {
+.integration_logs_window-message {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     margin-left: 10px;
 }
 
-.validator-container__title {
+.integration_logs_window-container__title {
     font-size: 20px;
     margin-top: 0px;
     margin-bottom: 10px;
 }
 
-.validator-dialog-error-container {
+.integration_logs_window-dialog-log-container {
     width: calc(100% - 20px);
     margin: 0 0 20px 0;
     padding: 5px 10px;
@@ -62,20 +58,20 @@
     border-radius: 5px;
 }
 
-.validator-dialog-error-title {
+.integration_logs_window-dialog-log-title {
     font-size: 15px;
     font-weight: 500;
     margin: 0;
 }
 
-.validator-dialog-error-path {
+.integration_logs_window-dialog-log-path {
     font-size: 12px;
     font-weight: 500;
     color: var(--select);
     margin: 0;
 }
 
-.validator-dialog-error-message {
+.integration_logs_window-dialog-log-message {
     font-size: 12px;
     font-weight: 300;
 }
