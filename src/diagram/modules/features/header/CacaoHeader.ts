@@ -280,27 +280,6 @@ export default class CacaoHeader {
 				},
 			},
 			{
-				title: 'STIX 2.1 COA Playbook',
-				className: 'export_stix',
-				action: async () => {
-					this._cacaoExporter.openExportPreferencesDialog('STIX 2.1 JSON');
-				},
-			},
-			{
-				title: 'CACAO JSON',
-				className: 'export',
-				action: async () => {
-					this._cacaoExporter.openExportPreferencesDialog('CACAO JSON');
-				},
-			},
-			{
-				title: 'SVG',
-				className: 'export',
-				action: () => {
-					this._cacaoExporter.exportToSVG();
-				},
-			},
-			{
 				title: 'METADATA',
 				className: 'metadata',
 				action: () => {
@@ -310,54 +289,114 @@ export default class CacaoHeader {
 		];
 		this._headerOptions.innerHTML = '';
 		this._integrationsDropDownButton();
+		this._exportOptionsDropDownButton();
 		for (const entry of entries) {
 			this.createEntry(entry, this._headerOptions);
 		}
 	}
 
-	private _integrationsDropDownButton() {
+	private _exportOptionsDropDownButton() {
+		// Dropdown content container
 		const dropdownContent = document.createElement('div');
-		dropdownContent.classList.add('dropdown', 'hidden');
+		dropdownContent.classList.add('dropdown-content');
 
-		const dropdownButton = document.createElement('div');
-		dropdownButton.classList.add('integrations', 'options__entry');
-		dropdownButton.addEventListener('click', () => {
-			dropdownContent.classList.toggle('hidden');
-		});
+		/* Dropdown items */
+		// Export STIX 2.1 JSON
+		const dropdownItem1 = this._createDropdownItem(
+			'export_stix-2-1-icon',
+			'STIX 2.1 JSON',
+			() => this._cacaoExporter.openExportPreferencesDialog('STIX 2.1 JSON'),
+		);
 
+		// Export CACAO JSON
+		const dropdownItem2 = this._createDropdownItem('export_cacao-json-icon', 'CACAO JSON', () =>
+			this._cacaoExporter.openExportPreferencesDialog('CACAO JSON'),
+		);
+
+		// Export SVG
+		const dropdownItem3 = this._createDropdownItem('export_svg-icon', 'SVG', () =>
+			this._cacaoExporter.exportToSVG(),
+		);
+
+		// Adding dropdown items to the dropdown content
+		dropdownContent.appendChild(dropdownItem2);
+		dropdownContent.appendChild(dropdownItem3);
+		dropdownContent.appendChild(dropdownItem1);
+
+		// Dropdown Icon in the header menu
 		const entryIcon = document.createElement('div');
 		entryIcon.classList.add('entry__icon');
+		// Dropdown Label in the header menu
+		const entryLabel = document.createElement('p');
+		entryLabel.classList.add('entry__label');
+		entryLabel.innerText = 'EXPORT OPTIONS';
 
+		// Creating a dropdown "button" with icon and label
+		const dropdownButton = document.createElement('div');
+		dropdownButton.appendChild(entryIcon);
+		dropdownButton.appendChild(entryLabel);
+
+		// Assesmbling the dropdown
+		const dropdown = document.createElement('div');
+		dropdown.classList.add('export', 'options__entry', 'dropdown');
+		dropdown.appendChild(dropdownButton);
+		dropdown.appendChild(dropdownContent);
+
+		// Adding the dropdown to the header options
+		this._headerOptions.appendChild(dropdown);
+	}
+
+	private _createDropdownItem(id: string, label: string, action: CallableFunction) {
+		const dropdownItem1 = document.createElement('div');
+		const item1Icon = document.createElement('span');
+		item1Icon.classList.add('dropdown-item-icon');
+		item1Icon.id = id;
+		const item1Label = document.createElement('p');
+		item1Label.innerText = label;
+		dropdownItem1.appendChild(item1Icon);
+		dropdownItem1.appendChild(item1Label);
+		dropdownItem1.addEventListener('click', () => {
+			action();
+		});
+		return dropdownItem1;
+	}
+
+	private _integrationsDropDownButton() {
+		// Dropdown content container
+		const dropdownContent = document.createElement('div');
+		dropdownContent.classList.add('dropdown-content');
+
+		/* Dropdown item */
+		// SOARCA integration
+		const dropdownItem = this._createDropdownItem('integration_soarca-icon', 'SOARCA', () => {
+			this._soarcaIntegration.showDialog();
+		});
+
+		// Adding dropdown item to the dropdown content
+		dropdownContent.appendChild(dropdownItem);
+
+		// Dropdown Icon in the header menu
+		const entryIcon = document.createElement('div');
+		entryIcon.classList.add('entry__icon');
+		// Dropdown Label in the header menu
 		const entryLabel = document.createElement('p');
 		entryLabel.classList.add('entry__label');
 		entryLabel.innerText = 'INTEGRATIONS';
 
-		const dropdownItem = document.createElement('div');
-		dropdownItem.classList.add('dropdown-item');
-		dropdownItem.id = 'integration-soarca';
-		dropdownItem.innerText = 'SOARCA';
-		dropdownItem.addEventListener('click', () => {
-			this._soarcaIntegration.showDialog();
-		});
-		const dropdownItemIcon = document.createElement('span');
-		dropdownItemIcon.classList.add('dropdown-item-icon');
-
-		dropdownContent.appendChild(dropdownItem);
+		// Creating a dropdown "button" with icon and label
+		const dropdownButton = document.createElement('div');
+		dropdownButton.classList.add('flex-column-center');
 		dropdownButton.appendChild(entryIcon);
 		dropdownButton.appendChild(entryLabel);
-		dropdownButton.appendChild(dropdownContent);
 
-		// Close the dropdown when clicking outside of it
-		window.addEventListener('click', event => {
-			const clickEvent = event.target as HTMLElement;
-			if (!clickEvent.matches('.dropdown-button')) {
-				if (dropdownContent.classList.contains('show')) {
-					dropdownContent.classList.remove('show');
-				}
-			}
-		});
+		// Assesmbling the dropdown
+		const dropdown = document.createElement('div');
+		dropdown.classList.add('integrations', 'options__entry', 'dropdown');
+		dropdown.appendChild(dropdownButton);
+		dropdown.appendChild(dropdownContent);
 
-		this._headerOptions.appendChild(dropdownButton);
+		// Adding the dropdown to the header options
+		this._headerOptions.appendChild(dropdown);
 	}
 
 	/**
