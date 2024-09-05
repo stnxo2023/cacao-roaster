@@ -1,6 +1,6 @@
-enum UserType {
-	User = 'user',
-	System = 'system',
+export enum UserType {
+	user = 'user',
+	system = 'system',
 }
 
 export class LogItem {
@@ -29,8 +29,12 @@ export class LogItem {
 		return this._userType;
 	}
 
-	printLogItem() {
-		return `Timestamp: ${this.timestamp.toLocaleDateString()} ${this.timestamp.toLocaleTimeString()}, Message: ${this.messageTitle}, UserType: ${this.userType}`;
+	getLocalTime(): string {
+		return this.timestamp.toLocaleTimeString();
+	}
+
+	getLocalDate(): string {
+		return this.timestamp.toLocaleDateString();
 	}
 }
 
@@ -45,14 +49,16 @@ export default class IntegrationLog {
 		return this._logItems;
 	}
 
-	addLogItem(messageTitle: string, messageText: string, userType: UserType) {
+	private _addLogItem(messageTitle: string, messageText: string, userType: UserType) {
 		const logItem = new LogItem(userType, messageTitle, messageText);
 		this._logItems.push(logItem);
 	}
 
-	showAllLogItems() {
-		return this._logItems.map(logItem => {
-			logItem.printLogItem();
-		});
+	addUserLogItem(messageTitle: string, messageText: string) {
+		this._addLogItem(messageTitle, messageText, UserType.user);
+	}
+
+	addSystemLogItem(messageTitle: string, messageText: string) {
+		this._addLogItem(messageTitle, messageText, UserType.system);
 	}
 }

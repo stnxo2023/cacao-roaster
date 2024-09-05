@@ -1,4 +1,6 @@
-.integration_logs_window-container {
+/* ---------- Minimized Version Mode ------------- */
+
+.integration-logs_minimized {
     display: flex;
     position: fixed;
     bottom: 5px;
@@ -11,67 +13,160 @@
     letter-spacing: 0.5px;
     border: solid 1px rgb(185, 188, 197);
     border-radius: 5px;
-    justify-content: center;
     transition-duration: 200ms;
+    background-color: #ddf8fd;
+
+    &.move {
+        right: 360px !important;
+    }
+
+    .icon {
+        height: 15px;
+        width: 15px;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-image: url('../assets/icons/expand.svg');
+        transform: rotate(-180deg);
+        background-size: 25px 25px;
+        margin-left: 4px;
+        cursor: pointer;
+        transition-duration: 200ms;
+        &.switcher {
+            transition-duration: 200ms;
+            transform: rotate(0deg);
+        }
+    }
+
+    .message {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-left: 10px;
+        cursor: pointer;
+    }
 }
 
-.integration_logs_window-container--move {
-    right: 360px !important;
-}
-
-.integration_logs_window-icon {
-    height: 15px;
-    width: 15px;
-
-    background-repeat: no-repeat;
-    background-size: contain;
-    background-position: center;
-}
-
-.integration_logs_window-icon-log {
-    background-image: url('../assets/icons/error.svg');
-}
-
-.integration_logs_window-log {
-    background: #ffcbc8 !important;
-    color: #a50f0f !important;
-}
-
-.integration_logs_window-message {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-left: 10px;
-}
-
-.integration_logs_window-container__title {
-    font-size: 20px;
-    margin-top: 0px;
-    margin-bottom: 10px;
-}
-
-.integration_logs_window-dialog-log-container {
-    width: calc(100% - 20px);
-    margin: 0 0 20px 0;
-    padding: 5px 10px;
-    background-color: rgb(231, 231, 231);
+/* ---------- Expanded Version Mode ------------- */
+.integration-logs_expanded {
+    display: none;
+    position: fixed;
+    bottom: 40px;
+    right: 5px;
+    max-height: 70vh;
+    width: 500px;
+    overflow-y: auto;
+    border: 1px solid rgb(185, 188, 197);
     border-radius: 5px;
+    animation: ease-in 0.3s;
+    animation-fill-mode: both;
+    box-sizing: border-box;
+
+    &.move {
+        right: 360px !important;
+    }
+    .header {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        border-bottom: 1px solid rgb(185, 188, 197);
+        position: fixed;
+        width: 478px;
+        background-color: #d4d4d4;
+        color: #000000;
+        border-radius: 5px;
+        cursor: pointer;
+        .icon {
+            height: 15px;
+            width: 15px;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-image: url('../assets/icons/expand.svg');
+            transform: rotate(0deg);
+            background-size: 25px 25px;
+            margin-left: 4px;
+            transition-duration: 200ms;
+            &.switcher {
+                transition-duration: 200ms;
+                transform: rotate(-180deg);
+            }
+        }
+        .title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-left: 10px;
+        }
+    }
+    /* Wrapper that contains all messages */
+    .all-logs-container {
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        max-width: 100%;
+        background-color: white;
+    }
 }
 
-.integration_logs_window-dialog-log-title {
-    font-size: 15px;
-    font-weight: 500;
-    margin: 0;
-}
+/* General container for the log item */
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 80%;
+    margin: 8px 0;
+    border-radius: 20px;
+    font-family: Arial, sans-serif;
+    word-wrap: break-word;
 
-.integration_logs_window-dialog-log-path {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--select);
-    margin: 0;
-}
+    /* User message styling (blue, right-aligned) */
+    &:not(.system-log) {
+        align-self: flex-end;
+    }
+    /* System message styling (gray, left-aligned) */
+    &.system-log {
+        color: black;
+        align-self: flex-start;
 
-.integration_logs_window-dialog-log-message {
-    font-size: 12px;
-    font-weight: 300;
+        .message-content {
+            background-color: #e5e5ea;
+            color: black;
+        }
+    }
+
+    .metadata {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        margin-bottom: 5px;
+
+        .timestamp-right,
+        .timestamp-left {
+            font-size: 12px;
+            font-weight: 300;
+            margin: 0 0 0 8px;
+            padding: 0px;
+        }
+    }
+
+    .message-content {
+        background-color: #007aff;
+        color: white;
+        border-radius: 10px;
+        padding: 8px 12px;
+
+        .text {
+            font-size: 12px;
+            font-weight: 300;
+        }
+        .title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+    }
+
+    /* User or System type */
+    .type {
+        font-weight: bold;
+        margin: 0px;
+        padding: 0px;
+    }
 }
