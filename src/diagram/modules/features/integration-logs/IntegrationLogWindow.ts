@@ -9,15 +9,45 @@ export default class IntegrationLogsWindow {
 
 	constructor(playbookHandler: PlaybookHandler, eventBus: EventBus, container: HTMLElement) {
 		this._integrationLogs = playbookHandler.getIntegrationLog();
-		this._mockLogs();
-		this._mockLogs();
-		this._mockLogs();
-		eventBus.on(['elements.changed', 'diagram.init', 'playbook.changed'], () => {
-			this._createFullLogWindow();
-			this._initMinimizedLogWindow(container);
+		// this._mockLogs();
+		// this._mockLogs();
+		// this._mockLogs();
+		eventBus.on(['integrationLog.changed'], () => {
+			this._updateLogs();
 		});
 		this._createFullLogWindow();
 		this._initMinimizedLogWindow(container);
+	}
+
+	private _updateLogs() {
+		// Updates the number of logs in the minimized log window
+		const message = document.querySelector(
+			'.integration-logs_minimized .message',
+		) as HTMLDivElement;
+		if (message) {
+			message.innerHTML = `Integration Logs (${this._integrationLogs.logItems.length})`;
+		}
+
+		// Updates the number of logs in the full log window
+		const expanded_window_title = document.querySelector(
+			'.integration-logs_expanded .title',
+		) as HTMLDivElement;
+		if (expanded_window_title) {
+			expanded_window_title.innerHTML = `Integration Logs (${this._integrationLogs.logItems.length})`;
+		}
+
+		// Updates the logs in the full log window
+		const container = document.querySelector('.all-logs-container') as HTMLDivElement;
+		if (container) {
+			container.innerHTML = '';
+			for (const logItem of this._integrationLogs.logItems) {
+				container.appendChild(this._createMessage(logItem));
+			}
+		}
+
+		// Scrolls to the bottom of the log window to show the new messages
+		const myForm = document.getElementById('myForm');
+		if (myForm) myForm.scrollTop = myForm.scrollHeight;
 	}
 
 	// Creates a minimized log window, a small rectangle that shows the number of logs in the bottom right corner of the canvas. When clicked, it opens the full log window.
@@ -43,13 +73,18 @@ export default class IntegrationLogsWindow {
 		wrapper.onclick = () => {
 			const myForm = document.getElementById('myForm');
 			if (myForm) {
-				myForm.style.display = myForm.style.display === 'block' ? 'none' : 'block';
+				myForm.classList.toggle('hide');
+				myForm.classList.toggle('show');
 				icon.classList.toggle('switcher');
+
+				// Scrolls to the bottom of the log window to show the newest messages
 				myForm.scrollTop = myForm.scrollHeight;
 			}
 		};
 
 		// Adding the wrapper to the canvas container
+		const canvas_container = container.querySelector('.canvas') as HTMLDivElement;
+		if (canvas_container) canvas_container.appendChild(wrapper);
 		container.appendChild(wrapper);
 	}
 
@@ -59,6 +94,10 @@ export default class IntegrationLogsWindow {
 		const dialog = document.createElement('div') as HTMLDivElement;
 		dialog.className = 'integration-logs_expanded';
 		dialog.id = 'myForm';
+		dialog.classList.add('hide', 'preload');
+		setTimeout(() => {
+			dialog.classList.remove('preload');
+		}, 500);
 
 		/* ----- HEADER ----- */
 		// Header in the dialog
@@ -83,8 +122,16 @@ export default class IntegrationLogsWindow {
 		/* ----- BODY - LOGS ----- */
 		const container = document.createElement('div');
 		container.className = 'all-logs-container';
-		for (const logItem of this._integrationLogs.logItems) {
-			container.appendChild(this._createMessage(logItem));
+
+		if (this._integrationLogs.logItems.length === 0) {
+			const noLogInfo = document.createElement('div');
+			noLogInfo.classList.add('no-message-info');
+			noLogInfo.innerHTML = 'No logs available';
+			container.appendChild(noLogInfo);
+		} else {
+			for (const logItem of this._integrationLogs.logItems) {
+				container.appendChild(this._createMessage(logItem));
+			}
 		}
 
 		dialog.appendChild(container);
@@ -94,7 +141,14 @@ export default class IntegrationLogsWindow {
 
 		return new Promise<boolean>(resolve => {
 			header.addEventListener('click', () => {
-				dialog.style.display = 'none';
+				const collapsed_window_icon = document.querySelector(
+					'.integration-logs_minimized .icon',
+				) as HTMLDivElement;
+				if (collapsed_window_icon) {
+					collapsed_window_icon.classList.toggle('switcher');
+				}
+				dialog.classList.toggle('hide');
+				dialog.classList.toggle('show');
 				resolve(true);
 			});
 		});
@@ -114,8 +168,8 @@ export default class IntegrationLogsWindow {
 		}
 		logContainer.innerHTML = `
         <div class="metadata">
-          <p class="type"> ${logItem.userType}</p>
-          ${isUser ? '<p class="timestamp-right">' : '<p class="timestamp-left">'} ${logItem.getLocalDate()} ${logItem.getLocalTime()}</p>
+          <p class="type">${logItem.userType}</p>
+          <p class="timestamp">${logItem.getLocalDate()} ${logItem.getLocalTime()}</p>
         </div>
         <div class="message-content">
           <h1 class="title">${logItem.messageTitle}</h1>

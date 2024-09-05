@@ -5,7 +5,7 @@ import Ajv2019 from 'ajv/dist/2019';
 import draft7MetaSchema from 'ajv/dist/refs/json-schema-draft-07.json';
 import { schemaDictAgentTarget, schemaDictWithoutAgentTarget } from './../../../model/SchemaTypes';
 import type { Schema } from 'css-minimizer-webpack-plugin';
-import IntegrationLog from '../../integration-logs/IntegrationLog';
+import type IntegrationLog from '../../integration-logs/IntegrationLog';
 
 const SOARCA_END_POINT = process.env.SOARCA_END_POINT || '';
 const SOARCA_INTEGRATION_TITLE = 'SOARCA Integration v0.2.0';
@@ -41,7 +41,7 @@ export default class Soarca {
 		this._pingSoarcaButtonText = PING_SOARCA_BUTTON_TEXT;
 		this._soarcaInfoText = SOARCA_INFO_TEXT;
 		this._domainPortRegEx = DOMAIN_PORT_REGEX;
-		this._integrationLog = new IntegrationLog();
+		this._integrationLog = playbookHandler.getIntegrationLog();
 	}
 
 	/**

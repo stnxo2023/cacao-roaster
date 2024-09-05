@@ -1,6 +1,8 @@
+import type EventBus from 'diagram-js/lib/core/EventBus';
+
 export enum UserType {
-	user = 'user',
-	system = 'system',
+	user = 'User',
+	system = 'System',
 }
 
 export class LogItem {
@@ -30,7 +32,7 @@ export class LogItem {
 	}
 
 	getLocalTime(): string {
-		return this.timestamp.toLocaleTimeString();
+		return `${this.timestamp.toLocaleTimeString()}.${this.timestamp.getMilliseconds()}`;
 	}
 
 	getLocalDate(): string {
@@ -40,9 +42,12 @@ export class LogItem {
 
 export default class IntegrationLog {
 	private _logItems: LogItem[];
+	private _eventBus: EventBus;
+	static $inject: string[];
 
-	constructor() {
+	constructor(eventBus: EventBus) {
 		this._logItems = [];
+		this._eventBus = eventBus;
 	}
 
 	get logItems() {
@@ -52,6 +57,7 @@ export default class IntegrationLog {
 	private _addLogItem(messageTitle: string, messageText: string, userType: UserType) {
 		const logItem = new LogItem(userType, messageTitle, messageText);
 		this._logItems.push(logItem);
+		this._eventBus.fire('integrationLog.changed');
 	}
 
 	addUserLogItem(messageTitle: string, messageText: string) {
@@ -61,4 +67,10 @@ export default class IntegrationLog {
 	addSystemLogItem(messageTitle: string, messageText: string) {
 		this._addLogItem(messageTitle, messageText, UserType.system);
 	}
+
+	clearLog() {
+		this._logItems = [];
+		this._eventBus.fire('integrationLog.changed');
+	}
 }
+IntegrationLog.$inject = ['eventBus'];

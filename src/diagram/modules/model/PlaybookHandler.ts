@@ -63,7 +63,7 @@ export default class PlaybookHandler {
 		if (executionStatus) {
 			Object.assign(this._executionStatus, executionStatus);
 		}
-		this._integrationLog = new IntegrationLog();
+		this._integrationLog = new IntegrationLog(eventBus);
 
 		eventBus.on('diagram.clear', 1, (_e: any) => {
 			this._playbook = this.newPlaybook();

@@ -39,6 +39,11 @@
 .validator-error {
     background: #ffcbc8 !important;
     color: #a50f0f !important;
+
+    &:hover {
+        background: #e6a8a5 !important;
+        cursor: pointer;
+    }
 }
 
 .validator-message {
