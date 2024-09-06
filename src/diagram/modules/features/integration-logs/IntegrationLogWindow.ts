@@ -9,9 +9,9 @@ export default class IntegrationLogsWindow {
 
 	constructor(playbookHandler: PlaybookHandler, eventBus: EventBus, container: HTMLElement) {
 		this._integrationLogs = playbookHandler.getIntegrationLog();
-		// this._mockLogs();
-		// this._mockLogs();
-		// this._mockLogs();
+		this._mockLogs();
+		this._mockLogs();
+		this._mockLogs();
 		eventBus.on(['integrationLog.changed'], () => {
 			this._updateLogs();
 		});
