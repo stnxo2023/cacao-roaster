@@ -168,7 +168,9 @@ export default class CacaoSidePanel {
 		this._container.classList.add('sidepanel--close');
 		document.getElementsByClassName('djs-minimap')[0]?.classList.remove('minimap--move');
 		document.getElementsByClassName('integration-logs_minimized')[0]?.classList.remove('move');
-		document.getElementsByClassName('integration-logs_expanded')[0]?.classList.remove('move');
+		document
+			.getElementById(`logWindow-${this._playbookHandler.getIntegrationLog().uuid}`)
+			?.classList.remove('move');
 	}
 
 	private _show() {
@@ -176,7 +178,9 @@ export default class CacaoSidePanel {
 		this._container.classList.add('sidepanel--open');
 		document.getElementsByClassName('djs-minimap')[0]?.classList.add('minimap--move');
 		document.getElementsByClassName('integration-logs_minimized')[0]?.classList.add('move');
-		document.getElementsByClassName('integration-logs_expanded')[0]?.classList.add('move');
+		document
+			.getElementById(`logWindow-${this._playbookHandler.getIntegrationLog().uuid}`)
+			?.classList.add('move');
 	}
 
 	openSidepanel(element: Shape) {

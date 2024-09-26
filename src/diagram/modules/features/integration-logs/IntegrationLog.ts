@@ -83,6 +83,7 @@ export default class IntegrationLog {
 	private _fireEvent() {
 		console.log(`Pushing event to: integrationLog.changed${this.uuid}`);
 		console.log(`Integration Log size: ${this._logItems.length}`);
+		this._eventBus.fire(`integrationLog.changed${this.uuid}`);
 	}
 }
 IntegrationLog.$inject = ['eventBus'];

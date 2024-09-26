@@ -15,7 +15,7 @@ export default class IntegrationLogsWindow {
 		// this._mockLogs();
 		// this._mockLogs();
 		eventBus.on([`integrationLog.changed${this._integrationLogs.uuid}`], () => {
-			console.log(`event bus on:${this._integrationLogs.uuid}`);
+			console.log(`event bus on (updating): ${this._integrationLogs.uuid}`);
 			this._updateLogs();
 		});
 		this._createFullLogWindow();
@@ -33,14 +33,16 @@ export default class IntegrationLogsWindow {
 
 		// Updates the number of logs in the full log window
 		const expanded_window_title = document.querySelector(
-			'.integration-logs_expanded .title',
+			`#logWindow-${this._intLogUuid} .title`,
 		) as HTMLDivElement;
 		if (expanded_window_title) {
 			expanded_window_title.innerHTML = `Integration Logs (${this._integrationLogs.logItems.length})`;
 		}
 
 		// Updates the logs in the full log window
-		const container = document.querySelector('.all-logs-container') as HTMLDivElement;
+		const container = document.querySelector(
+			`#logWindow-${this._intLogUuid} .all-logs-container`,
+		) as HTMLDivElement;
 		if (container) {
 			container.innerHTML = '';
 			for (const logItem of this._integrationLogs.logItems) {
@@ -135,6 +137,7 @@ export default class IntegrationLogsWindow {
 			noLogInfo.classList.add('no-message-info');
 			noLogInfo.innerHTML = 'No logs available';
 			container.appendChild(noLogInfo);
+			console.log('No logs available');
 		} else {
 			for (const logItem of this._integrationLogs.logItems) {
 				container.appendChild(this._createMessage(logItem));
@@ -166,6 +169,7 @@ export default class IntegrationLogsWindow {
 	 * @returns         HTMLDivElement element with the log message
 	 */
 	private _createMessage(logItem: LogItem): HTMLDivElement {
+		console.log(`Creating message for intLog with uuid: ${this._intLogUuid}`);
 		const isUser = logItem.userType === UserType.user;
 		const logContainer = document.createElement('div');
 		logContainer.classList.add('message-wrapper');
