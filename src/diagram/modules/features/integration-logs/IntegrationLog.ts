@@ -40,14 +40,21 @@ export class LogItem {
 	}
 }
 
+import { v4 as uuidv4 } from 'uuid';
 export default class IntegrationLog {
 	private _logItems: LogItem[];
 	private _eventBus: EventBus;
 	static $inject: string[];
+	private _uuid: string;
 
 	constructor(eventBus: EventBus) {
 		this._logItems = [];
 		this._eventBus = eventBus;
+		this._uuid = uuidv4();
+	}
+
+	get uuid() {
+		return this._uuid;
 	}
 
 	get logItems() {
@@ -57,7 +64,7 @@ export default class IntegrationLog {
 	private _addLogItem(messageTitle: string, messageText: string, userType: UserType) {
 		const logItem = new LogItem(userType, messageTitle, messageText);
 		this._logItems.push(logItem);
-		this._eventBus.fire('integrationLog.changed');
+		this._fireEvent();
 	}
 
 	addUserLogItem(messageTitle: string, messageText: string) {
@@ -70,7 +77,12 @@ export default class IntegrationLog {
 
 	clearLog() {
 		this._logItems = [];
-		this._eventBus.fire('integrationLog.changed');
+		this._fireEvent();
+	}
+
+	private _fireEvent() {
+		console.log(`Pushing event to: integrationLog.changed${this.uuid}`);
+		console.log(`Integration Log size: ${this._logItems.length}`);
 	}
 }
 IntegrationLog.$inject = ['eventBus'];

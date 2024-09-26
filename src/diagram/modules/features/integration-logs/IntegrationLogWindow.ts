@@ -6,13 +6,16 @@ import { type LogItem, UserType } from './IntegrationLog';
 export default class IntegrationLogsWindow {
 	static $inject: string[];
 	private _integrationLogs: IntegrationLog;
+	private _intLogUuid: string;
 
 	constructor(playbookHandler: PlaybookHandler, eventBus: EventBus, container: HTMLElement) {
 		this._integrationLogs = playbookHandler.getIntegrationLog();
-		this._mockLogs();
-		this._mockLogs();
-		this._mockLogs();
-		eventBus.on(['integrationLog.changed'], () => {
+		this._intLogUuid = this._integrationLogs.uuid;
+		// this._mockLogs();
+		// this._mockLogs();
+		// this._mockLogs();
+		eventBus.on([`integrationLog.changed${this._integrationLogs.uuid}`], () => {
+			console.log(`event bus on:${this._integrationLogs.uuid}`);
 			this._updateLogs();
 		});
 		this._createFullLogWindow();
@@ -46,8 +49,8 @@ export default class IntegrationLogsWindow {
 		}
 
 		// Scrolls to the bottom of the log window to show the new messages
-		const myForm = document.getElementById('myForm');
-		if (myForm) myForm.scrollTop = myForm.scrollHeight;
+		const logWindow = document.getElementById(`logWindow-${this._intLogUuid}`);
+		if (logWindow) logWindow.scrollTop = logWindow.scrollHeight;
 	}
 
 	// Creates a minimized log window, a small rectangle that shows the number of logs in the bottom right corner of the canvas. When clicked, it opens the full log window.
@@ -71,15 +74,16 @@ export default class IntegrationLogsWindow {
 
 		// Click handler to show the full log window
 		wrapper.onclick = () => {
-			const myForm = document.getElementById('myForm');
-			if (myForm) {
-				myForm.classList.toggle('hide');
-				myForm.classList.toggle('show');
+			const logWindow = document.getElementById(`logWindow-${this._intLogUuid}`);
+			if (logWindow) {
+				logWindow.classList.toggle('hide');
+				logWindow.classList.toggle('show');
+				console.log(`logWindow with id:${logWindow.id} exists`);
 				icon.classList.toggle('switcher');
 
 				// Scrolls to the bottom of the log window to show the newest messages
-				myForm.scrollTop = myForm.scrollHeight;
-			}
+				logWindow.scrollTop = logWindow.scrollHeight;
+			} else console.log(`logWindow with id:${this._intLogUuid} does not exist`);
 		};
 
 		// Adding the wrapper to the canvas container
@@ -93,7 +97,8 @@ export default class IntegrationLogsWindow {
 		// Dialog element
 		const dialog = document.createElement('div') as HTMLDivElement;
 		dialog.className = 'integration-logs_expanded';
-		dialog.id = 'myForm';
+		dialog.id = `logWindow-${this._intLogUuid}`;
+		console.log(`creating logWindow with id:${dialog.id}`);
 		dialog.classList.add('hide', 'preload');
 		setTimeout(() => {
 			dialog.classList.remove('preload');
@@ -123,6 +128,8 @@ export default class IntegrationLogsWindow {
 		const container = document.createElement('div');
 		container.className = 'all-logs-container';
 
+		console.log(`Loading log messages from Int logs with id: ${this._integrationLogs.uuid}`);
+		console.log(`Log items length: ${this._integrationLogs.logItems.length}`);
 		if (this._integrationLogs.logItems.length === 0) {
 			const noLogInfo = document.createElement('div');
 			noLogInfo.classList.add('no-message-info');
@@ -141,12 +148,11 @@ export default class IntegrationLogsWindow {
 
 		return new Promise<boolean>(resolve => {
 			header.addEventListener('click', () => {
-				const collapsed_window_icon = document.querySelector(
-					'.integration-logs_minimized .icon',
+				const icon = document.querySelector(
+					'.integration-logs_minimized > .icon',
 				) as HTMLDivElement;
-				if (collapsed_window_icon) {
-					collapsed_window_icon.classList.toggle('switcher');
-				}
+				icon.classList.toggle('switcher');
+				console.log('icon: ', icon);
 				dialog.classList.toggle('hide');
 				dialog.classList.toggle('show');
 				resolve(true);

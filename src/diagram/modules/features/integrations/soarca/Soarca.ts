@@ -260,6 +260,10 @@ export default class Soarca {
 	}
 
 	private _triggerPlaybook() {
+		this._integrationLog.addUserLogItem(
+			'Trigger Playbook',
+			`Triggering playbook with playbook id: ${this._playbook.id}`,
+		);
 		fetch(`${this._soarcaUrl}/trigger/playbook`, {
 			method: 'POST',
 			headers: {
@@ -276,9 +280,12 @@ export default class Soarca {
 			.then(data => {
 				console.log('Success:', data);
 				console.log('Triggered Playbook with ID: ', this._playbook.id);
+				const executionID = (data as any).execution_id;
+				// this._integrationLog.addSystemLogItem('Execution ID', `Execution ID: ${executionID}`);
 			})
 			.catch(error => {
 				console.error('Error:', error);
+				// this._integrationLog.addSystemLogItem('Failed to trigger playbook', error.message);
 			});
 	}
 
