@@ -326,6 +326,85 @@ export default class Soarca {
 		this._playbook.agent_definitions = agentDictionary;
 		this._playbookHandler.setPlaybookDates();
 	}
+
+	private _checkExecutionStatus(executionID: string) {
+		fetch(`${this._soarcaUrl}/reporter/${executionID}`, {
+			method: 'GET',
+			headers: {
+				accept: 'application/json',
+			},
+		})
+			.then(response => {
+				if (response.status === 200) {
+					response.json();
+				} else throw new Error('Failed to get execution status');
+			})
+			.then(data => {
+				console.log('Success:', data);
+				this._integrationLog.addSystemLogItem(
+					'Execution Status Update',
+					'Execution status recieved',
+				);
+			})
+			.catch(error => {
+				console.error('Error:', error);
+				this._integrationLog.addSystemLogItem(
+					'Failed to get execution status',
+					error.message,
+				);
+			});
+		this._mockReporterAPI();
+	}
+
+	private _updateWorkflowExecutionStatus() {
+		// Check if execution status exists
+	}
+
+	private _mockReporterAPI() {
+		//curl -X 'GET' \
+		//  'http://localhost:8080/reporter/5a22868b-6937-11ef-b63b-0242ac160003' \
+		//  -H 'accept: application/json'
+		//  http://localhost:8080/reporter/5a22868b-6937-11ef-b63b-0242ac160003
+		const soarca_reporterURL = '/reporter/';
+		return {
+			type: 'execution_status',
+			execution_id: '5a22868b-6937-11ef-b63b-0242ac160003',
+			playbook_id: 'playbook--300270f9-0e64-42c8-93cc-0927edbe3ae7',
+			started: '2024-09-02T14:26:32.810716782Z',
+			ended: '2024-09-02T14:26:32.811396491Z',
+			status: 'successfully_executed',
+			status_text: 'playbook execution completed successfully',
+			step_results: {
+				'action--88f4c4df-fa96-44e6-b310-1c06d193ea55': {
+					execution_id: '5a22868b-6937-11ef-b63b-0242ac160003',
+					step_id: 'action--88f4c4df-fa96-44e6-b310-1c06d193ea55',
+					started: '2024-09-02T14:26:32.81076219Z',
+					ended: '2024-09-02T14:26:32.811051359Z',
+					status: 'server_side_error',
+					status_text:
+						'there was a server-side problem with the execution of this step - error: dial tcp 172.21.0.2:2222: connect: connection refused',
+					executed_by: 'soarca',
+					commands_b64: ['cm0gX19wYXRoX186dmFsdWU='],
+					variables: {},
+					automated_execution: true,
+				},
+				'action--eb9372d4-d524-49fc-bf24-be26ea084779': {
+					execution_id: '5a22868b-6937-11ef-b63b-0242ac160003',
+					step_id: 'action--eb9372d4-d524-49fc-bf24-be26ea084779',
+					started: '2024-09-02T14:26:32.811069563Z',
+					ended: '2024-09-02T14:26:32.811326719Z',
+					status: 'server_side_error',
+					status_text:
+						'there was a server-side problem with the execution of this step - error: dial tcp 172.21.0.2:2222: connect: connection refused',
+					executed_by: 'soarca',
+					commands_b64: ['cGtpbGwgLWYgX19wcm9jZXNzbmFtZV9fOnZhbHVlIA=='],
+					variables: {},
+					automated_execution: true,
+				},
+			},
+			request_interval: 5,
+		};
+	}
 }
 
 Soarca.$inject = ['playbookHandler', 'config.container', 'eventBus', 'elementRegistry', 'Utils'];
