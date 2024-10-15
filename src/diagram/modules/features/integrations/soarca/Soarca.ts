@@ -353,7 +353,10 @@ export default class Soarca {
 					`Retrieving Execution Status with ID: ${executionID}`,
 					JSON.stringify(data),
 				);
-				return new ExecutionStatus(data);
+				const executionStatus = new ExecutionStatus(data);
+				this._playbookHandler._executionStatus[executionID] = executionStatus.step_results;
+				this._playbookHandler.updateExecutionStatus();
+				return executionStatus;
 			})
 			.catch(error => {
 				console.error(`Failed to get execution status for execution ID: ${executionID}`);
@@ -361,7 +364,10 @@ export default class Soarca {
 					'Failed to get execution status',
 					error.message,
 				);
-				return new ExecutionStatus({ status: 'failed', execution_id: executionID });
+				return new ExecutionStatus({
+					status: 'server_side_error',
+					execution_id: executionID,
+				});
 			});
 	}
 
@@ -386,7 +392,10 @@ export default class Soarca {
 						'Failed to get execution status',
 						error.message,
 					);
-					return new ExecutionStatus({ status: 'failed', execution_id: executionID });
+					return new ExecutionStatus({
+						status: 'server_side_error',
+						execution_id: executionID,
+					});
 				});
 			await new Promise(resolve => setTimeout(resolve, 5000));
 		} while (executionResponse.status === 'ongoing');

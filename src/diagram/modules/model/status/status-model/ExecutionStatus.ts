@@ -50,6 +50,7 @@ export interface StatusElementProps {
 		| 'successfully_executed'
 		| 'failed'
 		| 'ongoing'
+		| 'await_user_input'
 		| 'server_side_error'
 		| 'client_side_error'
 		| 'timeout_error'
