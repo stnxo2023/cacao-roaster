@@ -6,7 +6,10 @@ import draft7MetaSchema from 'ajv/dist/refs/json-schema-draft-07.json';
 import { schemaDictAgentTarget, schemaDictWithoutAgentTarget } from './../../../model/SchemaTypes';
 import type { Schema } from 'css-minimizer-webpack-plugin';
 import type IntegrationLog from '../../integration-logs/IntegrationLog';
-import { ExecutionStatus } from '../../../../../diagram/modules/model/status/status-model/ExecutionStatus';
+import {
+	ExecutionStatus,
+	StatusElement,
+} from '../../../../../diagram/modules/model/status/status-model/ExecutionStatus';
 
 const SOARCA_END_POINT = process.env.SOARCA_END_POINT || '';
 const SOARCA_INTEGRATION_TITLE = 'SOARCA Integration v0.2.0';
@@ -353,9 +356,26 @@ export default class Soarca {
 					`Retrieving Execution Status with ID: ${executionID}`,
 					JSON.stringify(data),
 				);
+
 				const executionStatus = new ExecutionStatus(data);
+				executionStatus.step_results = Object.keys(data.step_results).reduce(
+					(acc: { [key: string]: StatusElement }, key: string) => {
+						acc[key] = new StatusElement(data.step_results[key]);
+						return acc;
+					},
+					{},
+				);
+				console.log(
+					'Playbook stored execution status: ',
+					this._playbookHandler._executionStatus[executionID],
+				);
 				this._playbookHandler._executionStatus[executionID] = executionStatus.step_results;
 				this._playbookHandler.updateExecutionStatus();
+				console.log(
+					'Playbook stored execution status AFTER UPDATE: ',
+					this._playbookHandler._executionStatus[executionID],
+				);
+
 				return executionStatus;
 			})
 			.catch(error => {

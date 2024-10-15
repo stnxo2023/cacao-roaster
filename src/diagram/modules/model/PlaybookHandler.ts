@@ -45,9 +45,8 @@ export default class PlaybookHandler {
 	private _initialPlaybook: Playbook;
 	private _eventBus: EventBus;
 
-	_executionStatus!: {
-		[k: Identifier]: StatusElement[];
-	};
+	//_executionStatus!: {[k: Identifier]: StatusElement[]};
+	_executionStatus: Record<Identifier, StatusElement>;
 	private _integrationLog: IntegrationLog;
 
 	static $inject: string[];
@@ -86,7 +85,7 @@ export default class PlaybookHandler {
 	getShapeStatus(stepId: string) {
 		if (this._executionStatus?.[stepId]) {
 			const statusList = this._executionStatus[stepId];
-			if (statusList.length > 0) {
+			if (Array.isArray(statusList) && statusList.length > 0) {
 				return statusList[0].status;
 			}
 		}
@@ -635,7 +634,10 @@ export default class PlaybookHandler {
 
 	updateExecutionStatus() {
 		for (const key in this._executionStatus) {
-			if (this._executionStatus[key].length === 0) {
+			if (
+				Array.isArray(this._executionStatus[key]) &&
+				this._executionStatus[key].length === 0
+			) {
 				delete this._executionStatus[key];
 			}
 		}

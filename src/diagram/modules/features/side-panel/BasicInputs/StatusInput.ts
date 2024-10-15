@@ -10,6 +10,7 @@ import {
 	schemaDictWithoutCommands,
 } from '../../../model/SchemaTypes';
 import statusJsonSchema from '../../../../../../lib/workflow-status/schema/execution-status.json';
+import { StatusElement } from '../../../model/status/status-model/ExecutionStatus';
 
 /**
  * The input to display and edit definition properties.
@@ -35,12 +36,12 @@ export class StatusInput extends BasicInput {
 		super(inputName, initialValue);
 		if (Object.keys(initialValue).length === 0) {
 			const date = new Date().toISOString();
-			this._value = {
-				start_time: date,
-				id: `execution-status--${uuidv4()}`,
+			this._value = new StatusElement({
+				started: date,
+				execution_id: `execution-status--${uuidv4()}`,
 				type: 'execution-status',
-				workflow_step: stepId,
-			};
+				step_id: stepId,
+			});
 		} else {
 			this._value = initialValue;
 		}

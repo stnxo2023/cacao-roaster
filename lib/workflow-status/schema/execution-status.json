@@ -82,5 +82,14 @@
             ]
         }
     },
-    "required": ["type", "id", "workflow_step", "start_time", "status", "command_b64", "automated_execution"]
+    "required": [
+        "type",
+        "execution_id",
+        "step_id",
+        "workflow_step",
+        "started",
+        "status",
+        "command_b64",
+        "automated_execution"
+    ]
 }
