@@ -15,7 +15,7 @@ export default class IntegrationLogsWindow {
 		// this._mockLogs();
 		// this._mockLogs();
 		eventBus.on([`integrationLog.changed${this._integrationLogs.uuid}`], () => {
-			console.log(`event bus on (updating): ${this._integrationLogs.uuid}`);
+			//console.log(`event bus on (updating): ${this._integrationLogs.uuid}`);
 			this._updateLogs();
 		});
 		this._createFullLogWindow();
@@ -80,12 +80,13 @@ export default class IntegrationLogsWindow {
 			if (logWindow) {
 				logWindow.classList.toggle('hide');
 				logWindow.classList.toggle('show');
-				console.log(`logWindow with id:${logWindow.id} exists`);
+				//console.log(`logWindow with id:${logWindow.id} exists`);
 				icon.classList.toggle('switcher');
 
 				// Scrolls to the bottom of the log window to show the newest messages
 				logWindow.scrollTop = logWindow.scrollHeight;
-			} else console.log(`logWindow with id:${this._intLogUuid} does not exist`);
+			}
+			// else console.log(`logWindow with id:${this._intLogUuid} does not exist`);
 		};
 
 		// Adding the wrapper to the canvas container
@@ -100,7 +101,7 @@ export default class IntegrationLogsWindow {
 		const dialog = document.createElement('div') as HTMLDivElement;
 		dialog.className = 'integration-logs_expanded';
 		dialog.id = `logWindow-${this._intLogUuid}`;
-		console.log(`creating logWindow with id:${dialog.id}`);
+		//console.log(`creating logWindow with id:${dialog.id}`);
 		dialog.classList.add('hide', 'preload');
 		setTimeout(() => {
 			dialog.classList.remove('preload');
@@ -130,14 +131,14 @@ export default class IntegrationLogsWindow {
 		const container = document.createElement('div');
 		container.className = 'all-logs-container';
 
-		console.log(`Loading log messages from Int logs with id: ${this._integrationLogs.uuid}`);
-		console.log(`Log items length: ${this._integrationLogs.logItems.length}`);
+		//console.log(`Loading log messages from Int logs with id: ${this._integrationLogs.uuid}`);
+		//console.log(`Log items length: ${this._integrationLogs.logItems.length}`);
 		if (this._integrationLogs.logItems.length === 0) {
 			const noLogInfo = document.createElement('div');
 			noLogInfo.classList.add('no-message-info');
 			noLogInfo.innerHTML = 'No logs available';
 			container.appendChild(noLogInfo);
-			console.log('No logs available');
+			//console.log('No logs available');
 		} else {
 			for (const logItem of this._integrationLogs.logItems) {
 				container.appendChild(this._createMessage(logItem));
@@ -155,7 +156,7 @@ export default class IntegrationLogsWindow {
 					'.integration-logs_minimized > .icon',
 				) as HTMLDivElement;
 				icon.classList.toggle('switcher');
-				console.log('icon: ', icon);
+				//console.log('icon: ', icon);
 				dialog.classList.toggle('hide');
 				dialog.classList.toggle('show');
 				resolve(true);
@@ -169,7 +170,7 @@ export default class IntegrationLogsWindow {
 	 * @returns         HTMLDivElement element with the log message
 	 */
 	private _createMessage(logItem: LogItem): HTMLDivElement {
-		console.log(`Creating message for intLog with uuid: ${this._intLogUuid}`);
+		//console.log(`Creating message for intLog with uuid: ${this._intLogUuid}`);
 		const isUser = logItem.userType === UserType.user;
 		const logContainer = document.createElement('div');
 		logContainer.classList.add('message-wrapper');

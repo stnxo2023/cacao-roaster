@@ -8,7 +8,7 @@ export interface ExecutionStatusProps {
 	started: Timestamp;
 	ended: Timestamp;
 	status:
-		| 'successfully_completed'
+		| 'successfully_executed'
 		| 'failed'
 		| 'ongoing'
 		| 'server_side_error'
@@ -17,7 +17,7 @@ export interface ExecutionStatusProps {
 		| 'exception_condition_invoked';
 	status_text: string;
 	step_results: StatusElement[];
-	requests_interval: number;
+	request_interval: number;
 }
 
 export interface ExecutionStatus extends ExecutionStatusProps {}
@@ -35,6 +35,7 @@ export class ExecutionStatus {
 		for (const element of props.step_results) {
 			props.step_results.push(new StatusElement(element));
 		}
+		this.request_interval = props.request_interval;
 	}
 }
 
@@ -46,7 +47,7 @@ export interface StatusElementProps {
 	ended: Timestamp;
 	duration: number;
 	status:
-		| 'successfully_completed'
+		| 'successfully_executed'
 		| 'failed'
 		| 'ongoing'
 		| 'server_side_error'

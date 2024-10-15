@@ -6,6 +6,7 @@ import draft7MetaSchema from 'ajv/dist/refs/json-schema-draft-07.json';
 import { schemaDictAgentTarget, schemaDictWithoutAgentTarget } from './../../../model/SchemaTypes';
 import type { Schema } from 'css-minimizer-webpack-plugin';
 import type IntegrationLog from '../../integration-logs/IntegrationLog';
+import { ExecutionStatus } from '../../../../../diagram/modules/model/status/status-model/ExecutionStatus';
 
 const SOARCA_END_POINT = process.env.SOARCA_END_POINT || '';
 const SOARCA_INTEGRATION_TITLE = 'SOARCA Integration v0.2.0';
@@ -189,7 +190,7 @@ export default class Soarca {
 			schemaDictWithoutAgentTarget.playbook,
 			CacaoUtils.filterEmptyValues(this._playbookHandler.playbook),
 		);
-		console.log('Schema errors: ', ajv.errors);
+		//console.log('Schema errors: ', ajv.errors);
 		return isValid;
 	}
 
@@ -272,20 +273,24 @@ export default class Soarca {
 			body: JSON.stringify(CacaoUtils.filterEmptyValues(this._playbook)),
 		})
 			.then(response => {
-				console.log('Response: ', response);
+				//console.log('Response: ', response);
 				if (response.status === 200) {
-					response.json();
-				} else throw new Error('Failed to trigger playbook');
+					return response.json();
+				}
 			})
 			.then(data => {
-				console.log('Success:', data);
-				console.log('Triggered Playbook with ID: ', this._playbook.id);
-				const executionID = (data as any).execution_id;
-				// this._integrationLog.addSystemLogItem('Execution ID', `Execution ID: ${executionID}`);
+				console.log('Successfully Triggered Playbook with ID: ', this._playbook.id);
+				const executionID = (data as ExecutionStatus).execution_id;
+				console.log('The triggeren playbook got the following Execution ID: ', executionID);
+				this._integrationLog.addSystemLogItem(
+					'Playbook sent for execution',
+					`Execution ID: ${executionID}`,
+				);
+				this._triggerExecutionStatusChecks(executionID);
 			})
 			.catch(error => {
-				console.error('Error:', error);
-				// this._integrationLog.addSystemLogItem('Failed to trigger playbook', error.message);
+				console.error('Error while triggering the playbook:', error);
+				this._integrationLog.addSystemLogItem('Failed to trigger playbook', error.message);
 			});
 	}
 
@@ -327,37 +332,64 @@ export default class Soarca {
 		this._playbookHandler.setPlaybookDates();
 	}
 
-	private _checkExecutionStatus(executionID: string) {
-		fetch(`${this._soarcaUrl}/reporter/${executionID}`, {
+	private async _checkExecutionStatus(executionID: string): Promise<ExecutionStatus> {
+		return fetch(`${this._soarcaUrl}/reporter/${executionID}`, {
 			method: 'GET',
 			headers: {
 				accept: 'application/json',
 			},
 		})
 			.then(response => {
+				console.log('Response of the reporter module for execution status: ', response);
 				if (response.status === 200) {
-					response.json();
-				} else throw new Error('Failed to get execution status');
+					return response.json();
+				}
+				throw new Error('Failed to get execution status');
 			})
 			.then(data => {
-				console.log('Success:', data);
+				if (!data) throw new Error('The execution stats is empty');
+				console.log('Execution Status: ', data);
 				this._integrationLog.addSystemLogItem(
-					'Execution Status Update',
-					'Execution status recieved',
+					`Retrieving Execution Status with ID: ${executionID}`,
+					JSON.stringify(data),
 				);
+				return new ExecutionStatus(data);
 			})
 			.catch(error => {
-				console.error('Error:', error);
+				console.error(`Failed to get execution status for execution ID: ${executionID}`);
 				this._integrationLog.addSystemLogItem(
 					'Failed to get execution status',
 					error.message,
 				);
+				return new ExecutionStatus({ status: 'failed', execution_id: executionID });
 			});
-		this._mockReporterAPI();
 	}
 
-	private _updateWorkflowExecutionStatus() {
-		// Check if execution status exists
+	private async _triggerExecutionStatusChecks(executionID: string) {
+		let executionResponse: ExecutionStatus;
+		do {
+			//console.log('Checking Execution Status - first call')
+			executionResponse = await this._checkExecutionStatus(executionID)
+				.then(data => {
+					//console.log('Execution Status: ', data);
+					if (data?.status === 'successfully_executed') {
+						this._integrationLog.addSystemLogItem(
+							'Playbook Execution Completed!',
+							`Playbook ID: ${this._playbook.id}, Execution ID: ${executionID}`,
+						);
+					}
+					return data as ExecutionStatus;
+				})
+				.catch(error => {
+					//console.error('Error while checking the execution status:', error);
+					this._integrationLog.addSystemLogItem(
+						'Failed to get execution status',
+						error.message,
+					);
+					return new ExecutionStatus({ status: 'failed', execution_id: executionID });
+				});
+			await new Promise(resolve => setTimeout(resolve, 5000));
+		} while (executionResponse.status === 'ongoing');
 	}
 
 	private _mockReporterAPI() {
@@ -408,3 +440,39 @@ export default class Soarca {
 }
 
 Soarca.$inject = ['playbookHandler', 'config.container', 'eventBus', 'elementRegistry', 'Utils'];
+
+/*
+{
+	"type": "execution_status",
+	"execution_id": "a3153729-8a80-11ef-bec7-0242ac150003",
+	"playbook_id": "playbook--300270f9-0e64-42c8-93cc-0927edbe3ae7",
+	"started": "2024-10-14T23:04:16.830138309Z",
+	"ended": "0001-01-01T00:00:00Z",
+	"status": "ongoing",
+	"status_text": "this playbook is currently being executed",
+	"step_results": {
+		"action--88f4c4df-fa96-44e6-b310-1c06d193ea55": {
+			"execution_id": "a3153729-8a80-11ef-bec7-0242ac150003",
+			"step_id": "action--88f4c4df-fa96-44e6-b310-1c06d193ea55",
+			"started": "2024-10-14T23:04:16.830309208Z",
+			"ended": "0001-01-01T00:00:00Z",
+			"status": "ongoing",
+			"status_text": "this step is currently being executed",
+			"executed_by": "soarca",
+			"commands_b64": [
+				"cm0gX19wYXRoX186dmFsdWU="
+			],
+			"variables": {
+				"__path__": {
+					"type": "string",
+					"name": "__path__",
+					"value": "/opt/webshell/webshell.py",
+					"constant": true
+				}
+			},
+			"automated_execution": true
+		}
+	},
+	"request_interval": 5
+}
+ */
