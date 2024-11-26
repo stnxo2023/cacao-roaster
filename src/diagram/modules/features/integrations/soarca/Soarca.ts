@@ -6,10 +6,9 @@ import draft7MetaSchema from 'ajv/dist/refs/json-schema-draft-07.json';
 import { schemaDictAgentTarget, schemaDictWithoutAgentTarget } from './../../../model/SchemaTypes';
 import type { Schema } from 'css-minimizer-webpack-plugin';
 import type IntegrationLog from '../../integration-logs/IntegrationLog';
-import {
-	ExecutionStatus,
-	StatusElement,
-} from '../../../../../diagram/modules/model/status/status-model/ExecutionStatus';
+import { ExecutionStatus, type StatusElement } from '../../../../../diagram/modules/model/status/status-model/ExecutionStatus';
+import type { Identifier } from 'lib/cacao2-js/src/data-types/Identifier';
+
 
 const SOARCA_END_POINT = process.env.SOARCA_END_POINT || '';
 const SOARCA_INTEGRATION_TITLE = 'SOARCA Integration v0.2.0';
@@ -91,12 +90,8 @@ export default class Soarca {
 				this._soarcaUrl = (
 					document.getElementById('soarca-end_point-input') as HTMLInputElement
 				).value;
-				const soarcaInputError = document.getElementById(
-					'soarca-end_point-error',
-				) as HTMLSpanElement;
-				const playbookError = document.getElementById(
-					'playbook-error-message',
-				) as HTMLSpanElement;
+				const soarcaInputError = document.getElementById('soarca-end_point-error') as HTMLSpanElement;
+				const playbookError = document.getElementById('playbook-error-message') as HTMLSpanElement;
 
 				// Check if populated and validate soarca url
 				if (!this._domainPortRegEx.test(this._soarcaUrl) && this._soarcaUrl !== '') {
@@ -351,30 +346,35 @@ export default class Soarca {
 			})
 			.then(data => {
 				if (!data) throw new Error('The execution stats is empty');
-				console.log('Execution Status: ', data);
 				this._integrationLog.addSystemLogItem(
 					`Retrieving Execution Status with ID: ${executionID}`,
 					JSON.stringify(data),
 				);
 
+				console.log('Execution Status: ', data);
+				// Parsing the step results objects and pushing it to the stepResults object array
+				const stepResults: Record<Identifier, Array<StatusElement>> = {};
+				for (const [key, value] of Object.entries(data.step_results as Record<Identifier, StatusElement>)) {
+					if (!stepResults[key]) {
+						stepResults[key] = [];
+					}
+					stepResults[key].push(value);
+				}
+				data.step_results = stepResults;
+				console.log('DATA OBJECT AFTER MANIPULATION: ', data);
+
 				const executionStatus = new ExecutionStatus(data);
-				executionStatus.step_results = Object.keys(data.step_results).reduce(
-					(acc: { [key: string]: StatusElement }, key: string) => {
-						acc[key] = new StatusElement(data.step_results[key]);
-						return acc;
-					},
-					{},
-				);
-				console.log(
-					'Playbook stored execution status: ',
-					this._playbookHandler._executionStatus[executionID],
-				);
-				this._playbookHandler._executionStatus[executionID] = executionStatus.step_results;
-				this._playbookHandler.updateExecutionStatus();
-				console.log(
-					'Playbook stored execution status AFTER UPDATE: ',
-					this._playbookHandler._executionStatus[executionID],
-				);
+				console.log('Execution Status OBJECT: ', executionStatus);
+				console.log('Playbook stored execution status: ', this._playbookHandler.getExecutionStatus());
+				// If the execution status already exists, update it, otherwise add it
+				if (this._playbookHandler.executionStatusExists(executionStatus.execution_id)) {
+					this._playbookHandler.updateExistingExecutionStatus(executionStatus);
+				} else {
+					this._playbookHandler.getExecutionStatus().push(executionStatus)
+				}
+
+				console.log('Playbook stored execution status AFTER UPDATE: ', this._playbookHandler.getExecutionStatus());
+
 
 				return executionStatus;
 			})
@@ -420,88 +420,6 @@ export default class Soarca {
 			await new Promise(resolve => setTimeout(resolve, 5000));
 		} while (executionResponse.status === 'ongoing');
 	}
-
-	private _mockReporterAPI() {
-		//curl -X 'GET' \
-		//  'http://localhost:8080/reporter/5a22868b-6937-11ef-b63b-0242ac160003' \
-		//  -H 'accept: application/json'
-		//  http://localhost:8080/reporter/5a22868b-6937-11ef-b63b-0242ac160003
-		const soarca_reporterURL = '/reporter/';
-		return {
-			type: 'execution_status',
-			execution_id: '5a22868b-6937-11ef-b63b-0242ac160003',
-			playbook_id: 'playbook--300270f9-0e64-42c8-93cc-0927edbe3ae7',
-			started: '2024-09-02T14:26:32.810716782Z',
-			ended: '2024-09-02T14:26:32.811396491Z',
-			status: 'successfully_executed',
-			status_text: 'playbook execution completed successfully',
-			step_results: {
-				'action--88f4c4df-fa96-44e6-b310-1c06d193ea55': {
-					execution_id: '5a22868b-6937-11ef-b63b-0242ac160003',
-					step_id: 'action--88f4c4df-fa96-44e6-b310-1c06d193ea55',
-					started: '2024-09-02T14:26:32.81076219Z',
-					ended: '2024-09-02T14:26:32.811051359Z',
-					status: 'server_side_error',
-					status_text:
-						'there was a server-side problem with the execution of this step - error: dial tcp 172.21.0.2:2222: connect: connection refused',
-					executed_by: 'soarca',
-					commands_b64: ['cm0gX19wYXRoX186dmFsdWU='],
-					variables: {},
-					automated_execution: true,
-				},
-				'action--eb9372d4-d524-49fc-bf24-be26ea084779': {
-					execution_id: '5a22868b-6937-11ef-b63b-0242ac160003',
-					step_id: 'action--eb9372d4-d524-49fc-bf24-be26ea084779',
-					started: '2024-09-02T14:26:32.811069563Z',
-					ended: '2024-09-02T14:26:32.811326719Z',
-					status: 'server_side_error',
-					status_text:
-						'there was a server-side problem with the execution of this step - error: dial tcp 172.21.0.2:2222: connect: connection refused',
-					executed_by: 'soarca',
-					commands_b64: ['cGtpbGwgLWYgX19wcm9jZXNzbmFtZV9fOnZhbHVlIA=='],
-					variables: {},
-					automated_execution: true,
-				},
-			},
-			request_interval: 5,
-		};
-	}
 }
 
 Soarca.$inject = ['playbookHandler', 'config.container', 'eventBus', 'elementRegistry', 'Utils'];
-
-/*
-{
-	"type": "execution_status",
-	"execution_id": "a3153729-8a80-11ef-bec7-0242ac150003",
-	"playbook_id": "playbook--300270f9-0e64-42c8-93cc-0927edbe3ae7",
-	"started": "2024-10-14T23:04:16.830138309Z",
-	"ended": "0001-01-01T00:00:00Z",
-	"status": "ongoing",
-	"status_text": "this playbook is currently being executed",
-	"step_results": {
-		"action--88f4c4df-fa96-44e6-b310-1c06d193ea55": {
-			"execution_id": "a3153729-8a80-11ef-bec7-0242ac150003",
-			"step_id": "action--88f4c4df-fa96-44e6-b310-1c06d193ea55",
-			"started": "2024-10-14T23:04:16.830309208Z",
-			"ended": "0001-01-01T00:00:00Z",
-			"status": "ongoing",
-			"status_text": "this step is currently being executed",
-			"executed_by": "soarca",
-			"commands_b64": [
-				"cm0gX19wYXRoX186dmFsdWU="
-			],
-			"variables": {
-				"__path__": {
-					"type": "string",
-					"name": "__path__",
-					"value": "/opt/webshell/webshell.py",
-					"constant": true
-				}
-			},
-			"automated_execution": true
-		}
-	},
-	"request_interval": 5
-}
- */

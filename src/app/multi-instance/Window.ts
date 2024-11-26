@@ -4,6 +4,7 @@ import CacaoEditor from '../../diagram/CacaoEditor';
 import { newPlaybook } from '../Application';
 import UserSettingsProps from '../UserSettingsProps';
 import cacaoDialog from '../../diagram/modules/core/CacaoDialog';
+import type { ExecutionStatus } from '../../../src/diagram/modules/model/status/status-model/ExecutionStatus';
 
 export default class CacaoWindow {
 	private _headerEntry: HTMLElement;
@@ -65,7 +66,7 @@ export default class CacaoWindow {
         <div class="button__icon"></div>
         <p class="button__label">Create</p>
         `;
-		newButton.onclick = (e: Event) => {
+		newButton.onclick = () => {
 			this.loadEditor();
 		};
 
@@ -76,7 +77,7 @@ export default class CacaoWindow {
         <div class="button__icon"></div>
         <p class="button__label">Import File</p>
         `;
-		openButton.onclick = (e: Event) => {
+		openButton.onclick = () => {
 			try {
 				this.openFileExplorer();
 			} catch (e: any) {
@@ -91,7 +92,7 @@ export default class CacaoWindow {
         <div class="button__icon"></div>
         <p class="button__label">Import Text</p>
         `;
-		textImport.onclick = (e: Event) => this.openDialogForTextImport();
+		textImport.onclick = () => this.openDialogForTextImport();
 
 		const settingsButton = document.createElement('div');
 		settingsButton.className = 'window__button button--settings button--small button--wholerow';
@@ -99,7 +100,7 @@ export default class CacaoWindow {
         <div class="button__icon"></div>
         <p class="button__label">user settings</p>
         `;
-		settingsButton.onclick = (e: Event) => {
+		settingsButton.onclick = () => {
 			UserSettingsProps.instance.showDialog();
 		};
 
@@ -331,10 +332,11 @@ export default class CacaoWindow {
 		fileInput.click();
 	}
 
-	private loadEditor(playbook: Playbook | undefined = undefined, status?: any) {
+	private loadEditor(playbook: Playbook | undefined = undefined, status?: Array<ExecutionStatus>) {
 		if (!playbook) {
 			playbook = newPlaybook();
 		}
+		console.log('Importing playbook with Execution status: ', status);
 		this._container.className = '';
 		this._container.textContent = '';
 		this._editor = new CacaoEditor(this._container, playbook, status);

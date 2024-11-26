@@ -30,7 +30,7 @@ export default class CacaoSidePanel {
 	_selection: SelectionTool;
 	_stepId = '';
 	_propertyPanel!: PropertyPanel;
-	_onConfirm: any = () => {};
+	_onConfirm: any = () => { };
 	_elementRegistry: ElementRegistry;
 	_shape!: Shape;
 	_objectOpened: 'metadata' | 'step' | undefined;
@@ -222,7 +222,7 @@ export default class CacaoSidePanel {
 		this._container.innerHTML = '';
 		this._propertyPanel.addAllProperties();
 		this._propertyPanel.setPreviousPanel(this._propertyPanel.submit());
-		this._propertyPanel.setPreviousStatus(this._playbookHandler._executionStatus);
+		this._propertyPanel.setPreviousStatus(this._playbookHandler.getExecutionStatus());
 	}
 
 	openMetadataPanel() {

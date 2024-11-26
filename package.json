@@ -10,8 +10,7 @@
     },
     "lint-staged": {
         "**/*.{js,ts}": [
-            "biome format --write",
-            "biome lint --write --staged"
+            "npx eslint --fix"
         ]
     },
     "engines": {
@@ -22,16 +21,19 @@
     "license": "Apache-2.0",
     "description": "A web application for parsing, manipulating, visualizing, signing and countersigning CACAO v2.0 playbooks.",
     "devDependencies": {
-        "@biomejs/biome": "1.8.3",
-        "@typescript-eslint/eslint-plugin": "^6.19.0",
+        "@eslint/js": "^9.15.0",
+        "@typescript-eslint/eslint-plugin": "^8.16.0",
+        "@typescript-eslint/parser": "^8.16.0",
         "clean-webpack-plugin": "^4.0.0",
         "dotenv": "^16.4.5",
         "dotenv-webpack": "^8.1.0",
+        "eslint": "^8.57.1",
         "html-webpack-plugin": "^5.5.1",
         "husky": "^8.0.3",
         "lint-staged": "^15.2.0",
         "ts-loader": "^9.4.2",
-        "typescript": "^5.3.3",
+        "typescript": "^5.7.2",
+        "typescript-eslint": "^8.16.0",
         "webpack": "^5.82.1",
         "webpack-cli": "^5.1.1",
         "webpack-dev-server": "^4.15.0"

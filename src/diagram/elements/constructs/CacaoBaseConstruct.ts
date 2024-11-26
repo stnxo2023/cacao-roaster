@@ -1,10 +1,4 @@
-import {
-	append as svgAppend,
-	attr as svgAttr,
-	create as svgCreate,
-	classes as svgClasses,
-	type KeyValue,
-} from 'tiny-svg';
+import type { KeyValue } from 'tiny-svg';
 import { assign } from 'min-dash';
 import TextUtil from 'diagram-js/lib/util/Text';
 import type { Shape, ShapeLike, Element, Connection } from 'diagram-js/lib/model/Types';
@@ -158,14 +152,12 @@ export default abstract class CacaoBaseConstruct {
 
 	/**
 	 * this method returns the props to render the dot for the execution status
-	 * @param shape
-	 * @param value
-	 * @returns
 	 */
-	getExecutionStatusDotProps(shape: Shape, value: any): DrawProps {
-		const strokeColor = executionStatusColorStrong[value ?? ''];
-		const fillColor = executionStatusColor[value ?? ''];
-
+	getExecutionStatusDotProps(shape: Shape, workflowExecutionStatus: any): DrawProps {
+		const strokeColor = executionStatusColorStrong[workflowExecutionStatus ?? ''];
+		const fillColor = executionStatusColor[workflowExecutionStatus ?? ''];
+		console.log('fillColor', fillColor);
+		console.log('strokeColor', strokeColor);
 		return {
 			type: 'rectangle',
 			x: shape.width - 15,

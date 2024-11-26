@@ -9,7 +9,7 @@ import type { SwitchConditionStep } from '../../../../lib/cacao2-js/src/workflow
 import type { IfConditionStep } from '../../../../lib/cacao2-js/src/workflows/IfConditionStep';
 import type { ParallelStep } from '../../../../lib/cacao2-js/src/workflows/ParallelStep';
 import type EventBus from 'diagram-js/lib/core/EventBus';
-import type { StatusElement } from '../../modules/model/status/status-model/ExecutionStatus';
+import type { ExecutionStatus, StatusElement } from '../../modules/model/status/status-model/ExecutionStatus';
 import type { Connection, Shape } from 'diagram-js/lib/model';
 import CacaoUtils from '../core/CacaoUtils';
 import { CoordinatesExtension } from './coordinates-extension/CoordinatesExtension';
@@ -26,13 +26,13 @@ import IntegrationLog from '../features/integration-logs/IntegrationLog';
  */
 export type ContextPlaybookAttrs = {
 	action:
-		| 'remove.shape'
-		| 'remove.connection'
-		| 'add.shape'
-		| 'add.connection'
-		| 'update.metadata'
-		| 'update.connection'
-		| 'update.shape';
+	| 'remove.shape'
+	| 'remove.connection'
+	| 'add.shape'
+	| 'add.connection'
+	| 'update.metadata'
+	| 'update.connection'
+	| 'update.shape';
 	element: Shape | Connection;
 };
 
@@ -40,31 +40,25 @@ export type ContextPlaybookAttrs = {
  * a class which represents a controller/interface to communicate with the cacao model
  */
 export default class PlaybookHandler {
-	private _playbook: Playbook = {} as Playbook;
-
+	private _playbook: Playbook;
 	private _initialPlaybook: Playbook;
 	private _eventBus: EventBus;
-
-	//_executionStatus!: {[k: Identifier]: StatusElement[]};
-	_executionStatus: Record<Identifier, StatusElement>;
+	// private _executionStatus: Record<Timestamp, ExecutionStatus>;
+	private _executionStatus: Array<ExecutionStatus>;
 	private _integrationLog: IntegrationLog;
-
 	static $inject: string[];
-	/**
-	 * constructor
-	 */
-	constructor(eventBus: EventBus, playbook: Playbook, executionStatus: any) {
-		this._eventBus = eventBus;
 
+	constructor(eventBus: EventBus, playbook: Playbook, executionStatus: Array<ExecutionStatus>) {
+		this._eventBus = eventBus;
 		this._playbook = playbook;
 		this._initialPlaybook = new Playbook(playbook);
-		this._executionStatus = {};
+		this._executionStatus = [];
 		if (executionStatus) {
-			Object.assign(this._executionStatus, executionStatus);
+			this._executionStatus = executionStatus;
 		}
 		this._integrationLog = new IntegrationLog(eventBus);
 
-		eventBus.on('diagram.clear', 1, (_e: any) => {
+		eventBus.on('diagram.clear', 1, () => {
 			this._playbook = this.newPlaybook();
 			this._eventBus.fire('playbook.changed', undefined);
 		});
@@ -83,10 +77,15 @@ export default class PlaybookHandler {
 	}
 
 	getShapeStatus(stepId: string) {
-		if (this._executionStatus?.[stepId]) {
-			const statusList = this._executionStatus[stepId];
-			if (Array.isArray(statusList) && statusList.length > 0) {
-				return statusList[0].status;
+		console.log('execution status: ', this._executionStatus);
+		console.log('stepId: ', stepId);
+		console.log('hasExecutionStatus: ', this.hasExecutionStatus());
+		if (this.hasExecutionStatus() && stepId) {
+			const stepStatuses = this.getStepStatus(stepId);
+			console.log('stepStatuses: ', stepStatuses);
+			if (stepStatuses.length > 0) {
+				console.log('getLatestStepStatus: ', this.getLatestStepStatus(this.getStepStatus(stepId)));
+				return this.getLatestStepStatus(stepStatuses).status;
 			}
 		}
 		return undefined;
@@ -291,9 +290,7 @@ export default class PlaybookHandler {
 	 * @returns boolean True if a it connect something, False otherwise
 	 */
 	connectSteps(idFrom: string, idTo: string, type: CacaoConnectionType): void {
-		let fromStep: WorkflowStep | any;
-
-		fromStep = this.getStep(idFrom);
+		const fromStep = this.getStep(idFrom);
 
 		if (!fromStep) {
 			throw new Error(`step not found with id: ${idFrom}`);
@@ -360,13 +357,8 @@ export default class PlaybookHandler {
 	}
 
 	disconnectSteps(idFrom: string, idTo: string, type: CacaoConnectionType) {
-		let fromStep: WorkflowStep;
-
-		fromStep = this.getStep(idFrom);
-
-		if (!fromStep) {
-			return;
-		}
+		const fromStep = this.getStep(idFrom);
+		if (!fromStep) return;
 
 		switch (type) {
 			case CacaoConnectionType.ON_COMPLETION:
@@ -461,8 +453,8 @@ export default class PlaybookHandler {
 		}
 		const result: { [key: string]: any }[] = this._playbook.workflow[stepId]
 			.external_references as {
-			[key: string]: any;
-		}[];
+				[key: string]: any;
+			}[];
 		if (result) {
 			return result;
 		}
@@ -628,24 +620,92 @@ export default class PlaybookHandler {
 	getPlaybookAndStatus(): object {
 		const obj: any = {};
 		obj.playbook = this._playbook;
-		obj.execution_status = this._executionStatus;
+		obj.execution_status = this.getExecutionStatus();
 		return obj;
 	}
 
-	updateExecutionStatus() {
-		for (const key in this._executionStatus) {
-			if (
-				Array.isArray(this._executionStatus[key]) &&
-				this._executionStatus[key].length === 0
-			) {
-				delete this._executionStatus[key];
+	hasExecutionStatus(): boolean {
+		// check if the execution status is empty
+		if (this.getExecutionStatus().length === 0) {
+			return false;
+		}
+		return true;
+	}
+
+	getExecutionStatus(): Array<ExecutionStatus> {
+		return this._executionStatus;
+	}
+
+	getLastExecutionStatus(): ExecutionStatus | undefined {
+		if (this._executionStatus.length > 0) {
+			return this._executionStatus[this._executionStatus.length - 1];
+		}
+		return undefined;
+	}
+
+	setExecutionStatus(executionStatus: Array<ExecutionStatus>) {
+		this._executionStatus = executionStatus;
+	}
+
+	// Checks if the execution status object already exists in the executionStatusArray
+	executionStatusExists(executionID: string): boolean {
+		return this._executionStatus.some((status: ExecutionStatus) => status.execution_id === executionID);
+	}
+
+
+	addNewExecutionStatus(executionStatus: ExecutionStatus) {
+		this._executionStatus.push(executionStatus);
+	}
+
+	updateExistingExecutionStatus(executionStatus: ExecutionStatus) {
+		const index = this._executionStatus.findIndex(
+			(status: ExecutionStatus) => status.execution_id === executionStatus.execution_id,
+		);
+		if (index !== -1) {
+			this._executionStatus[index] = executionStatus;
+
+			// properties to update: ended, status, status_text
+			this._executionStatus[index].ended = executionStatus.ended;
+			this._executionStatus[index].status = executionStatus.status;
+			this._executionStatus[index].status_text = executionStatus.status_text;
+
+			// update the step_results object by pushing new status element objects to the stepid arrays.
+			for (const stepId in executionStatus.step_results) {
+				const statusElements = executionStatus.step_results[stepId];
+				for (const statusElement of statusElements) {
+					this._executionStatus[index].step_results[stepId].push(statusElement);
+				}
 			}
 		}
 	}
 
-	hasExecutionStatus() {
-		this.updateExecutionStatus();
-		return Object.keys(this._executionStatus).length !== 0;
+	// Look for status of particular step in every execution status object
+	getStepStatus(stepId: string): Array<StatusElement> {
+		const stepStatusElements: Array<StatusElement> = [];
+		// console.log('getStepStatus().stepId: ', stepId);
+		// console.log('getStepStatus().executionStatus: ', this._executionStatus);
+		for (const executionStatus of this._executionStatus) {
+			// console.log('getStepStatus().executionStatus: ', executionStatus);
+			if (executionStatus.step_results[stepId]) {
+				// console.log('getStepStatus().step_results: ', executionStatus.step_results[stepId]);
+				for (const statusElement of executionStatus.step_results[stepId]) {
+					// console.log('getStepStatus().statusElement: ', statusElement);
+					stepStatusElements.push(statusElement);
+				}
+			}
+		}
+		return stepStatusElements;
+	}
+
+	getLatestStepStatus(stepStatuses: Array<StatusElement>): StatusElement {
+		// find status element with the latest started timestamp
+		let latestStatusElement = stepStatuses[0];
+		for (const statusElement of stepStatuses) {
+			if (new Date(statusElement.started) > new Date(latestStatusElement.started)) {
+				latestStatusElement = statusElement;
+			}
+		}
+		return latestStatusElement;
 	}
 
 	/**
@@ -659,7 +719,7 @@ export default class PlaybookHandler {
 			//is Connection
 			const workflowstep = this.playbook.workflow[element?.source?.id];
 			if (workflowstep === undefined) {
-				throw Error("the connection's source does not correspond to any workflow step");
+				throw Error('the connection\'s source does not correspond to any workflow step');
 			}
 			let coordinatesExtension = this.getCoordinatesExtension(element?.source?.id);
 			if (!workflowstep.step_extensions) {
@@ -678,7 +738,6 @@ export default class PlaybookHandler {
 				connectionExtension: ConnectionExtension,
 				connection: Connection,
 			) => {
-				const _index = 0;
 				connectionExtension.x = [];
 				connectionExtension.y = [];
 				const waypoints = connection?.waypoints;
@@ -769,7 +828,7 @@ export default class PlaybookHandler {
 			//is Connection
 			const workflowstep = this.playbook.workflow[element?.source?.id];
 			if (workflowstep === undefined) {
-				throw Error("the connection's source does not correspond to any workflow step");
+				throw Error('the connection\'s source does not correspond to any workflow step');
 			}
 			if (workflowstep.step_extensions === undefined) {
 				workflowstep.step_extensions = [];
@@ -781,7 +840,6 @@ export default class PlaybookHandler {
 			delete workflowstep.step_extensions[CoordinatesExtensionIdentifier];
 		} else {
 			//is Shape
-			const _shape = element as Shape;
 			const workflowstep = this.playbook.workflow[element?.id];
 			if (workflowstep === undefined) {
 				throw Error('the shape does not correspond to any workflow step');

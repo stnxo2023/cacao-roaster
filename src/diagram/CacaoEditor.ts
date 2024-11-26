@@ -52,6 +52,7 @@ import type CommandStack from 'diagram-js/lib/command/CommandStack';
 import CacaoSigning from './modules/features/signing';
 import CacaoDialog from './modules/core/CacaoDialog';
 import IntegrationLogWindow from './modules/features/integration-logs';
+import type { ExecutionStatus } from './modules/model/status/status-model/ExecutionStatus';
 
 export default class CacaoEditor {
 	container: HTMLElement;
@@ -64,7 +65,7 @@ export default class CacaoEditor {
 	playbookHandler: PlaybookHandler;
 	commandStack: CommandStack;
 
-	constructor(container: HTMLElement, playbook: Playbook, executionStatus: any = {}) {
+	constructor(container: HTMLElement, playbook: Playbook, executionStatus: Array<ExecutionStatus> = []) {
 		this.container = container;
 		this.canvasContainer = document.createElement('div');
 		this.canvasContainer.className = 'canvas';

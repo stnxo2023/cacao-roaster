@@ -1,22 +1,20 @@
-import { Shape, ShapeLike, Element } from 'diagram-js/lib/model/Types';
+import type { Shape, ShapeLike, Element } from 'diagram-js/lib/model/Types';
 import CacaoElement, { CacaoConstructType } from '../CacaoBaseConstruct';
 import { CacaoConnectionType } from '../../connections/CacaoBaseConnection';
-import { WorkflowStep } from '../../../../../lib/cacao2-js/src/workflows/WorkflowStep';
-import { DrawFactory, DrawProps } from '../../../modules/draw/DrawFactory';
-import { ActionStep } from 'lib/cacao2-js/src/workflows/ActionStep';
-import { CommandData } from 'lib/cacao2-js/src/commands/CommandData';
-import PlaybookHandler from '../../../modules/model/PlaybookHandler';
-import { AgentTarget } from 'lib/cacao2-js';
+import type { WorkflowStep } from '../../../../../lib/cacao2-js/src/workflows/WorkflowStep';
+import { DrawFactory, type DrawProps } from '../../../modules/draw/DrawFactory';
+import type { ActionStep } from 'lib/cacao2-js/src/workflows/ActionStep';
+import type { CommandData } from 'lib/cacao2-js/src/commands/CommandData';
+import type PlaybookHandler from '../../../modules/model/PlaybookHandler';
+import type { AgentTarget } from 'lib/cacao2-js';
 import CacaoUtils from '../../../modules/core/CacaoUtils';
 
 export default class CacaoActionConstruct extends CacaoElement {
   backgroundColor = 'white';
   borderColor = '#006080';
   textColor = '#28293E';
-
   headerBackgroundColor = '#6BB8D0';
   headerTextColor = 'white';
-
   commandBackgroundColor = '#F1F6FF';
   commandBorderColor = '#6E86AF';
   commandTextColor = '#006080';
@@ -46,8 +44,8 @@ export default class CacaoActionConstruct extends CacaoElement {
     workflowStep: WorkflowStep,
     playbookHandler: PlaybookHandler,
   ): SVGElement {
-    let propsList: DrawProps[] = [];
-    let actionStep = workflowStep as ActionStep;
+    const propsList: DrawProps[] = [];
+    const actionStep = workflowStep as ActionStep;
     let visualHeight = shape.height;
 
     propsList.push(
@@ -60,9 +58,7 @@ export default class CacaoActionConstruct extends CacaoElement {
     );
     if (CacaoUtils.isDefined(shape.collapsed) && !shape.collapsed) {
       //add command tile
-      let commandHeight: number;
-      let commandShapeProps: DrawProps[];
-      [commandShapeProps, commandHeight] = this.getCommandsShapeProps(
+      const [commandShapeProps, commandHeight] = this.getCommandsShapeProps(
         visualHeight + 10,
         shape,
         actionStep,
@@ -71,9 +67,7 @@ export default class CacaoActionConstruct extends CacaoElement {
       visualHeight += commandHeight + 10;
 
       //add agent target tile
-      let agentTargetsHeight: number;
-      let agentTargetsShapeProps: DrawProps[];
-      [agentTargetsShapeProps, agentTargetsHeight] =
+      const [agentTargetsShapeProps, agentTargetsHeight] =
         this.getAgentTargetsShapeProps(
           visualHeight + 10,
           shape,
@@ -97,12 +91,7 @@ export default class CacaoActionConstruct extends CacaoElement {
       });
     }
 
-    propsList.push(
-      this.getExecutionStatusDotProps(
-        shape,
-        playbookHandler.getShapeStatus(shape.id),
-      ),
-    );
+    propsList.push(this.getExecutionStatusDotProps(shape, playbookHandler.getShapeStatus(shape.id)));
 
     DrawFactory.drawAll(visuals, propsList);
     return visuals;
@@ -120,14 +109,14 @@ export default class CacaoActionConstruct extends CacaoElement {
     shape: Shape,
     workflowStep: ActionStep,
   ): [DrawProps[], number] {
-    let top = posY;
+    const top = posY;
 
-    let opacity = 0.6;
+    const opacity = 0.6;
 
     posY += 15;
-    let commandPropsList = [];
+    const commandPropsList = [];
 
-    let background = (top: number, height: number): DrawProps => {
+    const background = (top: number, height: number): DrawProps => {
       return {
         type: 'rectangle',
         x: 0,
@@ -143,7 +132,7 @@ export default class CacaoActionConstruct extends CacaoElement {
       };
     };
 
-    let title: DrawProps = {
+    const title: DrawProps = {
       type: 'text',
       x: 5,
       y: top + 5,
@@ -161,14 +150,14 @@ export default class CacaoActionConstruct extends CacaoElement {
       },
     };
 
-    let command = (
+    const command = (
       y: number,
       command: Partial<CommandData>,
     ): [DrawProps[], number] => {
-      let propsList: DrawProps[] = [];
+      const propsList: DrawProps[] = [];
       let yIndex = y;
-      let horizontalMargin = 5;
-      let horizontalPadding = 10;
+      const horizontalMargin = 5;
+      const horizontalPadding = 10;
 
       yIndex += 5;
       propsList.push({
@@ -256,7 +245,7 @@ export default class CacaoActionConstruct extends CacaoElement {
       return [propsList, yIndex - y];
     };
 
-    let AddMoreProps = (name: string, posY: number): DrawProps => {
+    const AddMoreProps = (name: string, posY: number): DrawProps => {
       return {
         type: 'text',
         x: 5,
@@ -282,25 +271,23 @@ export default class CacaoActionConstruct extends CacaoElement {
       index < this.MAX_COMMANDS_DISPLAYED;
       index++
     ) {
-      let commandData = workflowStep.commands[index];
-      let commandProps: DrawProps[];
-      let commandHeight: number;
-      [commandProps, commandHeight] = command(posY, commandData);
+      const commandData = workflowStep.commands[index];
+      const [commandProps, commandHeight] = command(posY, commandData);
       commandPropsList.push(...commandProps);
       posY += 5 + commandHeight;
     }
 
     if (workflowStep?.commands?.length > this.MAX_COMMANDS_DISPLAYED) {
-      let number = workflowStep.commands.length - this.MAX_COMMANDS_DISPLAYED;
+      const number = workflowStep.commands.length - this.MAX_COMMANDS_DISPLAYED;
       let name = '';
-      if (number == 1) {
+      if (number === 1) {
         name = '1 more command';
       } else {
-        name = number + ' more commands';
+        name = `${number} more commands`;
       }
       commandPropsList.push(AddMoreProps(name, posY));
       posY += 10;
-    } else if (workflowStep?.commands?.length == 0) {
+    } else if (workflowStep?.commands?.length === 0) {
       posY += 5;
       commandPropsList.push(AddMoreProps('no command defined', posY));
       posY += 15;
@@ -325,13 +312,13 @@ export default class CacaoActionConstruct extends CacaoElement {
     workflowStep: ActionStep,
     playbookHandler: PlaybookHandler,
   ): [DrawProps[], number] {
-    let top = posY;
+    const top = posY;
 
-    let opacity = 0.6;
+    const opacity = 0.6;
 
-    let agentTargetPropsList: DrawProps[] = [];
+    const agentTargetPropsList: DrawProps[] = [];
 
-    let AddMoreProps = (name: string, posY: number): DrawProps => {
+    const AddMoreProps = (name: string, posY: number): DrawProps => {
       return {
         type: 'text',
         x: 5,
@@ -350,7 +337,7 @@ export default class CacaoActionConstruct extends CacaoElement {
       };
     };
 
-    let background = (top: number, height: number): DrawProps => {
+    const background = (top: number, height: number): DrawProps => {
       return {
         type: 'rectangle',
         x: 0,
@@ -366,14 +353,14 @@ export default class CacaoActionConstruct extends CacaoElement {
       };
     };
 
-    let agentTarget = (
+    const agentTarget = (
       y: number,
       agentTarget: AgentTarget,
     ): [DrawProps[], number] => {
-      let propsList: DrawProps[] = [];
+      const propsList: DrawProps[] = [];
       let yIndex = y;
-      let horizontalMargin = 5;
-      let horizontalPadding = 10;
+      const horizontalMargin = 5;
+      const horizontalPadding = 10;
 
       yIndex += 5;
       propsList.push({
@@ -438,7 +425,7 @@ export default class CacaoActionConstruct extends CacaoElement {
       return [propsList, yIndex - y];
     };
 
-    let titleAgent: DrawProps = {
+    const titleAgent: DrawProps = {
       type: 'text',
       x: 5,
       y: top + 5,
@@ -460,13 +447,13 @@ export default class CacaoActionConstruct extends CacaoElement {
 
     //show agent
     if (CacaoUtils.isDefined(workflowStep.agent)) {
-      let agent = playbookHandler.getAgent(workflowStep.agent);
-      if (agent == undefined)
+      const agent = playbookHandler.getAgent(workflowStep.agent);
+      if (agent === undefined)
         throw Error(
           'a step refer to an agent that is not existing in the playbook',
         );
 
-      let titleAgent: DrawProps = {
+      const titleAgent: DrawProps = {
         type: 'text',
         x: 5,
         y: top + 5,
@@ -485,9 +472,7 @@ export default class CacaoActionConstruct extends CacaoElement {
       };
 
       agentTargetPropsList.push(titleAgent);
-      let agentProps;
-      let agentHeight;
-      [agentProps, agentHeight] = agentTarget(posY, agent as AgentTarget);
+      const [agentProps, agentHeight] = agentTarget(posY, agent as AgentTarget);
       agentTargetPropsList.push(...agentProps);
       posY += agentHeight;
     } else {
@@ -496,7 +481,7 @@ export default class CacaoActionConstruct extends CacaoElement {
       posY += 15;
     }
 
-    let titleTarget: DrawProps = {
+    const titleTarget: DrawProps = {
       type: 'text',
       x: 5,
       y: posY + 5,
@@ -518,32 +503,30 @@ export default class CacaoActionConstruct extends CacaoElement {
     posY += 15; //height of text "targets" + margin bottom/top
 
     //show targets
-    if (workflowStep.targets?.length != 0) {
+    if (workflowStep.targets?.length !== 0) {
       let count = 0;
-      for (let targetId of workflowStep.targets) {
+      for (const targetId of workflowStep.targets) {
         if (count >= this.MAX_COMMANDS_DISPLAYED) break;
 
-        let target = playbookHandler.getTarget(targetId);
-        if (target == undefined)
+        const target = playbookHandler.getTarget(targetId);
+        if (target === undefined)
           throw Error(
             'a step refer to a target that is not existing in the playbook',
           );
 
-        let targetProps;
-        let targetHeight;
-        [targetProps, targetHeight] = agentTarget(posY, target as AgentTarget);
+        const [targetProps, targetHeight] = agentTarget(posY, target as AgentTarget);
         agentTargetPropsList.push(...targetProps);
         posY += 5 + targetHeight;
         count++;
       }
 
       if (workflowStep?.targets?.length > this.MAX_COMMANDS_DISPLAYED) {
-        let number = workflowStep.targets.length - this.MAX_COMMANDS_DISPLAYED;
+        const number = workflowStep.targets.length - this.MAX_COMMANDS_DISPLAYED;
         let name = '';
-        if (number == 1) {
+        if (number === 1) {
           name = '1 more target';
         } else {
-          name = number + ' more targets';
+          name = `${number} more targets`;
         }
         agentTargetPropsList.push(AddMoreProps(name, posY));
         posY += 10;
@@ -558,7 +541,7 @@ export default class CacaoActionConstruct extends CacaoElement {
   }
 
   filterCommandType(commandType: string | undefined): string | undefined {
-    if (commandType && commandType.endsWith('_cmd')) {
+    if (commandType?.endsWith('_cmd')) {
       return commandType.replace('_cmd', '');
     }
     return commandType;

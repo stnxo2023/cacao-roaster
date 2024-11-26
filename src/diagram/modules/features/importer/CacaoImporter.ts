@@ -1,21 +1,22 @@
-import EventBus from 'diagram-js/lib/core/EventBus';
-import PlaybookHandler from '../../model/PlaybookHandler';
-import CacaoModeling from '../modeling/CacaoModeling';
+import type EventBus from 'diagram-js/lib/core/EventBus';
+import type PlaybookHandler from '../../model/PlaybookHandler';
+import type CacaoModeling from '../modeling/CacaoModeling';
 import { Playbook } from '../../../../../lib/cacao2-js/src/Playbook';
 import { CacaoConstructType } from '../../../elements/constructs/CacaoBaseConstruct';
-import Canvas, { Point } from 'diagram-js/lib/core/Canvas';
-import { WorkflowStep } from 'lib/cacao2-js/src/workflows/WorkflowStep';
-import { Identifier } from 'lib/cacao2-js/src/data-types/Identifier';
-import CacaoAutoPlace from '../auto-place/CacaoAutoPlace';
+import type Canvas from 'diagram-js/lib/core/Canvas';
+import type { Point } from 'diagram-js/lib/core/Canvas';
+import type { WorkflowStep } from 'lib/cacao2-js/src/workflows/WorkflowStep';
+import type { Identifier } from 'lib/cacao2-js/src/data-types/Identifier';
+import type CacaoAutoPlace from '../auto-place/CacaoAutoPlace';
 import CacaoFactory from '../../factory/CacaoFactory';
-import { CacaoConnectionType } from 'src/diagram/elements/connections/CacaoBaseConnection';
-import ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
-import { Connection, ShapeLike } from 'diagram-js/lib/model/Types';
+import type { CacaoConnectionType } from 'src/diagram/elements/connections/CacaoBaseConnection';
+import type ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
+import type { Connection, ShapeLike } from 'diagram-js/lib/model/Types';
 import { assign } from 'min-dash';
 import CacaoUtils from '../../core/CacaoUtils';
 
 /**
- *
+ * this class is responsible to import a playbook in the canvas
  */
 export default class CacaoImporter {
   private _playbookHandler: PlaybookHandler;
@@ -43,12 +44,12 @@ export default class CacaoImporter {
     this._elementRegistry = elementRegistry;
 
     this._eventBus.on('cacao.import.start', (event: any) => {
-      let playbook: Playbook = event.playbook;
+      const playbook: Playbook = event.playbook;
       this.loadPlaybook(playbook);
     });
 
     this._eventBus.on('load.workflow', (event: any) => {
-      let playbook: Playbook = event.playbook;
+      const playbook: Playbook = event.playbook;
       this.loadWorkflow(playbook);
     });
   }
@@ -71,7 +72,7 @@ export default class CacaoImporter {
    * @param playbook
    */
   loadWorkflow(playbook: Playbook) {
-    let queue: {
+    const queue: {
       [k: string]: Partial<WorkflowStep>;
     } = new Playbook(playbook).workflow;
 
@@ -92,7 +93,7 @@ export default class CacaoImporter {
         //add initial step to the canvas
         let step = queue[stepId];
 
-        let list: [
+        const list: [
           Partial<WorkflowStep>,
           Identifier,
           Partial<WorkflowStep> | undefined,
@@ -116,7 +117,7 @@ export default class CacaoImporter {
             CacaoConnectionType | undefined,
           ];
 
-          let alreadyExist = this._elementRegistry.get(stepId) != undefined;
+          const alreadyExist = this._elementRegistry.get(stepId) != undefined;
 
           if (!previousStep || !previousStepId || !connectionType) {
             this.loadStep(step, stepId);
@@ -130,11 +131,11 @@ export default class CacaoImporter {
             continue;
           }
 
-          let nextList = this._playbookHandler.getNextSteps(step);
+          const nextList = this._playbookHandler.getNextSteps(step);
 
-          for (let entry of nextList) {
-            let [nextStepId, connectionType] = entry;
-            let nextStep = playbook.workflow[nextStepId];
+          for (const entry of nextList) {
+            const [nextStepId, connectionType] = entry;
+            const nextStep = playbook.workflow[nextStepId];
 
             list.push([nextStep, nextStepId, step, stepId, connectionType]);
           }
@@ -150,13 +151,11 @@ export default class CacaoImporter {
    * @param stepId
    */
   private loadStep(step: Partial<WorkflowStep>, stepId: Identifier) {
-    let position: Point;
-
     if (!step.type) {
       throw new Error('the type of a workflow step must be defined');
     }
 
-    let cacaoConstruct = CacaoFactory.getCacaoConstruct(
+    const cacaoConstruct = CacaoFactory.getCacaoConstruct(
       undefined,
       getCacaoTypeFromModelType(step.type),
     );
@@ -165,7 +164,7 @@ export default class CacaoImporter {
       throw new Error('impossible to get cacao construct from workflow step');
     }
 
-    let startShape: any = {
+    const startShape: any = {
       id: stepId,
       modelAssociated: true,
       type: cacaoConstruct.type,
@@ -173,7 +172,7 @@ export default class CacaoImporter {
       height: cacaoConstruct.properties.height,
     };
 
-    position = this._cacaoAutoPlace.getFirstShapePosition(startShape);
+    const position: Point = this._cacaoAutoPlace.getFirstShapePosition(startShape);
 
     assign(startShape, {
       x: position.x,
@@ -199,7 +198,6 @@ export default class CacaoImporter {
     previousStepId: Identifier,
     connectionType: CacaoConnectionType,
   ) {
-    let position: Point;
 
     if (
       !step?.type ||
@@ -211,11 +209,11 @@ export default class CacaoImporter {
       throw new Error('every parameter should be defined');
     }
 
-    let cacaoConstruct = CacaoFactory.getCacaoConstruct(
+    const cacaoConstruct = CacaoFactory.getCacaoConstruct(
       undefined,
       getCacaoTypeFromModelType(step.type),
     );
-    let source = this._elementRegistry.get(previousStepId) as ShapeLike;
+    const source = this._elementRegistry.get(previousStepId) as ShapeLike;
 
     if (!cacaoConstruct || !source) {
       throw new Error(
@@ -241,7 +239,7 @@ export default class CacaoImporter {
       return;
     }
 
-    let stepShape: any = {
+    const stepShape: any = {
       id: stepId,
       modelAssociated: true,
       type: cacaoConstruct.type,
@@ -251,7 +249,7 @@ export default class CacaoImporter {
       y: 0,
     };
 
-    let connection: Partial<Connection> = {
+    const connection: Partial<Connection> = {
       type: connectionType,
       modelAssociated: true,
       waypoints: this._cacaoAutoPlace.getConnectionWaypoints(
@@ -283,7 +281,7 @@ function getCacaoTypeFromModelType(modelType: string): CacaoConstructType {
     case 'switch-condition':
       return CacaoConstructType.SWITCH_CONDITION_STEP;
   }
-  throw new Error('type not implemented : ' + modelType);
+  throw new Error(`type not implemented : ${modelType}`);
 }
 
 CacaoImporter.$inject = [

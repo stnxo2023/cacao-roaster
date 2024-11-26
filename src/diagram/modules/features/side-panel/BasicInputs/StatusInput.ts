@@ -2,7 +2,7 @@ import type PlaybookHandler from 'src/diagram/modules/model/PlaybookHandler';
 import { BasicInput } from '../BasicInput';
 import { PanelButton } from '../PanelButton';
 import PropertyPanel from '../PropertyPanel';
-import type { UneditableInput } from './UneditableInput';
+// import type { UneditableInput } from './UneditableInput';
 import { v4 as uuidv4 } from 'uuid';
 import {
 	executionStatusColorLight,
@@ -11,13 +11,14 @@ import {
 } from '../../../model/SchemaTypes';
 import statusJsonSchema from '../../../../../../lib/workflow-status/schema/execution-status.json';
 import { StatusElement } from '../../../model/status/status-model/ExecutionStatus';
+// import { type ExecutionStatus, StatusElement } from '../../../model/status/status-model/ExecutionStatus';
 
 /**
  * The input to display and edit definition properties.
  */
 export class StatusInput extends BasicInput {
-	_value: any;
-	_variableUneditableField!: UneditableInput;
+	_value: StatusElement;
+	// _variableUneditableField!: UneditableInput;
 	_propertyPanel!: PropertyPanel;
 	_playbookHandler: PlaybookHandler;
 	_propertyType: string;
@@ -25,21 +26,13 @@ export class StatusInput extends BasicInput {
 	_refreshFunction: any;
 	_editButton!: PanelButton;
 
-	constructor(
-		inputName: string,
-		initialValue: any,
-		playbookHandler: PlaybookHandler,
-		propertyType: string,
-		refreshFunction: any,
-		stepId: string,
-	) {
+	constructor(inputName: string, initialValue: StatusElement, playbookHandler: PlaybookHandler, propertyType: string, refreshFunction: any, stepId: string) {
 		super(inputName, initialValue);
 		if (Object.keys(initialValue).length === 0) {
 			const date = new Date().toISOString();
 			this._value = new StatusElement({
 				started: date,
 				execution_id: `execution-status--${uuidv4()}`,
-				type: 'execution-status',
 				step_id: stepId,
 			});
 		} else {
@@ -56,8 +49,7 @@ export class StatusInput extends BasicInput {
 
 		this._container.appendChild(this._dialog);
 
-		const tempValues = {};
-		Object.assign(tempValues, this._value);
+		const tempValues = new StatusElement(this._value);
 		this._propertyPanel = new PropertyPanel(
 			this._playbookHandler,
 			this._propertyType,
@@ -69,6 +61,7 @@ export class StatusInput extends BasicInput {
 
 		const confirm = () => {
 			Object.assign(tempValues, this._propertyPanel?.confirm());
+			console.log('addToContainer() -> confirm() ->  tempValues: ', tempValues);
 			this._refreshFunction();
 		};
 
@@ -78,7 +71,7 @@ export class StatusInput extends BasicInput {
 				this._propertyType,
 				tempValues,
 				this._dialog,
-				this._value.id,
+				this._value.step_id,
 			);
 			this._propertyPanel.setIsAgentTarget(false);
 			this._propertyPanel._container.innerHTML = '';
@@ -119,7 +112,7 @@ export class StatusInput extends BasicInput {
 		);
 		if (this._value.status) {
 			this._editButton.addLine(
-				`start: \t${new Date(this._value.start_time).toLocaleString()}`,
+				`started: \t${new Date(this._value.started).toLocaleString()}`,
 				'executionstatus__content',
 			);
 			this._editButton._linesContainer.style.setProperty(
