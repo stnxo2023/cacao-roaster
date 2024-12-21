@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software in your work, please cite it as below."
+title: "CACAO Roaster"
+version: "1.2.0"
+license: "Apache-2.0"
+authors:
+  - family-names: "Open Cybersecurity Alliance"
+    given-names: ""
+    affiliation: ""
+date-released: "2024-02-29"
+url: "https://github.com/opencybersecurityalliance/cacao-roaster"
+abstract: |
+  CACAO Roaster is a sub-project of the Open Cybersecurity Alliance. It is a web application for generating, parsing, validating, manipulating, and visualizing CACAO v2.0 playbooks.
+repository-code: "https://github.com/opencybersecurityalliance/cacao-roaster"
+keywords:
+  - Cybersecurity
+  - Automation
+  - CACAO
+  - Playbooks
+  - Cyber Threat Intelligence (CTI)
