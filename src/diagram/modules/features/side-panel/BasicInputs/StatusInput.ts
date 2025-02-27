@@ -2,16 +2,14 @@ import type PlaybookHandler from 'src/diagram/modules/model/PlaybookHandler';
 import { BasicInput } from '../BasicInput';
 import { PanelButton } from '../PanelButton';
 import PropertyPanel from '../PropertyPanel';
-// import type { UneditableInput } from './UneditableInput';
 import { v4 as uuidv4 } from 'uuid';
 import {
 	executionStatusColorLight,
 	extractSchemaTypes,
 	schemaDictWithoutCommands,
 } from '../../../model/SchemaTypes';
-import statusJsonSchema from '../../../../../../lib/workflow-status/schema/execution-status.json';
+import statusJsonSchema from '../../../../../../lib/workflow-status/schema/workflow-status.json';
 import { StatusElement } from '../../../model/status/status-model/ExecutionStatus';
-// import { type ExecutionStatus, StatusElement } from '../../../model/status/status-model/ExecutionStatus';
 
 /**
  * The input to display and edit definition properties.
@@ -28,15 +26,32 @@ export class StatusInput extends BasicInput {
 
 	constructor(inputName: string, initialValue: StatusElement, playbookHandler: PlaybookHandler, propertyType: string, refreshFunction: any, stepId: string) {
 		super(inputName, initialValue);
+
 		if (Object.keys(initialValue).length === 0) {
 			const date = new Date().toISOString();
+			const uuid = uuidv4();
 			this._value = new StatusElement({
 				started: date,
-				execution_id: `execution-status--${uuidv4()}`,
+				execution_id: uuid,
 				step_id: stepId,
 			});
+			// console.log('StatusInput -> constructor -> this._value: ', this._value);
+			// console.log('StatusInput -> constructor -> this._playbookHandler.getExecutionStatus() BEFORE: ', playbookHandler.getExecutionStatus());
+			// if (playbookHandler.getExecutionStatus().execution_id === '') {
+			// 	const executionStatus = new ExecutionStatus({
+			// 		execution_id: uuid,
+			// 		playbook_id: playbookHandler.playbook.id,
+			// 		started: date,
+			// 		step_results: { stepId: [this._value] },
+			// 		request_interval: 0,
+			// 	});
+			// 	playbookHandler.setExecutionStatus(executionStatus);
+			// 	console.log('StatusInput -> constructor -> this._playbookHandler.getExecutionStatus() AFTER inside if: ', playbookHandler.getExecutionStatus());
+			// }
+
 		} else {
 			this._value = initialValue;
+			// playbookHandler.addStepStatusToExecutionStatus(stepId, this._value);
 		}
 		this._playbookHandler = playbookHandler;
 		this._propertyType = propertyType;
@@ -49,7 +64,7 @@ export class StatusInput extends BasicInput {
 
 		this._container.appendChild(this._dialog);
 
-		const tempValues = new StatusElement(this._value);
+		const tempValues = this._value;
 		this._propertyPanel = new PropertyPanel(
 			this._playbookHandler,
 			this._propertyType,
@@ -66,22 +81,14 @@ export class StatusInput extends BasicInput {
 		};
 
 		const cancel = () => {
-			this._propertyPanel = new PropertyPanel(
-				this._playbookHandler,
-				this._propertyType,
-				tempValues,
-				this._dialog,
-				this._value.step_id,
-			);
+			this._propertyPanel = new PropertyPanel(this._playbookHandler, this._propertyType, tempValues, this._dialog, this._value.step_id);
 			this._propertyPanel.setIsAgentTarget(false);
 			this._propertyPanel._container.innerHTML = '';
 			this._propertyPanel.setIsSubPanel(true);
 			this._propertyPanel.setIsStatus(true);
 			this._propertyPanel.addButton('Cancel', cancel);
 			this._propertyPanel.addButton('Confirm', confirm);
-			this._propertyPanel.setSchemaData(
-				extractSchemaTypes(statusJsonSchema, schemaDictWithoutCommands),
-			);
+			this._propertyPanel.setSchemaData(extractSchemaTypes(statusJsonSchema, schemaDictWithoutCommands));
 			this._propertyPanel.addAllProperties();
 			this._refreshFunction();
 			this._propertyPanel.close();
@@ -102,6 +109,7 @@ export class StatusInput extends BasicInput {
 				this.showPanel();
 			},
 		);
+
 		this._editButton.addClass('property__container');
 		this._editButton.addClass('container--simple');
 		this._editButton.addClass('container--disabled');

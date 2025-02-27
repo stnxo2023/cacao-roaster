@@ -367,14 +367,13 @@ export default class Soarca {
 				console.log('Execution Status OBJECT: ', executionStatus);
 				console.log('Playbook stored execution status: ', this._playbookHandler.getExecutionStatus());
 				// If the execution status already exists, update it, otherwise add it
-				if (this._playbookHandler.executionStatusExists(executionStatus.execution_id)) {
+				if (this._playbookHandler.isTheSameExecutionStatus(executionStatus.execution_id)) {
 					this._playbookHandler.updateExistingExecutionStatus(executionStatus);
 				} else {
-					this._playbookHandler.getExecutionStatus().push(executionStatus)
+					this._playbookHandler.setExecutionStatus(executionStatus);
 				}
 
 				console.log('Playbook stored execution status AFTER UPDATE: ', this._playbookHandler.getExecutionStatus());
-
 
 				return executionStatus;
 			})

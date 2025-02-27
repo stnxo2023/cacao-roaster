@@ -332,7 +332,7 @@ export default class CacaoWindow {
 		fileInput.click();
 	}
 
-	private loadEditor(playbook: Playbook | undefined = undefined, status?: Array<ExecutionStatus>) {
+	private loadEditor(playbook: Playbook | undefined = undefined, status?: ExecutionStatus) {
 		if (!playbook) {
 			playbook = newPlaybook();
 		}

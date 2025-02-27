@@ -9,7 +9,7 @@ import type { SwitchConditionStep } from '../../../../lib/cacao2-js/src/workflow
 import type { IfConditionStep } from '../../../../lib/cacao2-js/src/workflows/IfConditionStep';
 import type { ParallelStep } from '../../../../lib/cacao2-js/src/workflows/ParallelStep';
 import type EventBus from 'diagram-js/lib/core/EventBus';
-import type { ExecutionStatus, StatusElement } from '../../modules/model/status/status-model/ExecutionStatus';
+import { ExecutionStatus, StatusElement } from '../../modules/model/status/status-model/ExecutionStatus';
 import type { Connection, Shape } from 'diagram-js/lib/model';
 import CacaoUtils from '../core/CacaoUtils';
 import { CoordinatesExtension } from './coordinates-extension/CoordinatesExtension';
@@ -44,17 +44,17 @@ export default class PlaybookHandler {
 	private _initialPlaybook: Playbook;
 	private _eventBus: EventBus;
 	// private _executionStatus: Record<Timestamp, ExecutionStatus>;
-	private _executionStatus: Array<ExecutionStatus>;
+	private _executionStatus: ExecutionStatus;
 	private _integrationLog: IntegrationLog;
 	static $inject: string[];
 
-	constructor(eventBus: EventBus, playbook: Playbook, executionStatus: Array<ExecutionStatus>) {
+	constructor(eventBus: EventBus, playbook: Playbook, executionStatus: ExecutionStatus) {
 		this._eventBus = eventBus;
 		this._playbook = playbook;
 		this._initialPlaybook = new Playbook(playbook);
-		this._executionStatus = [];
+		this._executionStatus = new ExecutionStatus();
 		if (executionStatus) {
-			this._executionStatus = executionStatus;
+			this.setExecutionStatus(executionStatus);
 		}
 		this._integrationLog = new IntegrationLog(eventBus);
 
@@ -290,7 +290,9 @@ export default class PlaybookHandler {
 	 * @returns boolean True if a it connect something, False otherwise
 	 */
 	connectSteps(idFrom: string, idTo: string, type: CacaoConnectionType): void {
-		const fromStep = this.getStep(idFrom);
+		let fromStep: WorkflowStep | any;
+		// eslint-disable-next-line prefer-const
+		fromStep = this.getStep(idFrom);
 
 		if (!fromStep) {
 			throw new Error(`step not found with id: ${idFrom}`);
@@ -626,79 +628,56 @@ export default class PlaybookHandler {
 
 	hasExecutionStatus(): boolean {
 		// check if the execution status is empty
-		if (this.getExecutionStatus().length === 0) {
-			return false;
-		}
-		return true;
+		return this.getExecutionStatus().execution_id === '';
 	}
 
-	getExecutionStatus(): Array<ExecutionStatus> {
+	getExecutionStatus(): ExecutionStatus {
 		return this._executionStatus;
 	}
 
-	getLastExecutionStatus(): ExecutionStatus | undefined {
-		if (this._executionStatus.length > 0) {
-			return this._executionStatus[this._executionStatus.length - 1];
-		}
-		return undefined;
-	}
-
-	setExecutionStatus(executionStatus: Array<ExecutionStatus>) {
-		this._executionStatus = executionStatus;
+	setExecutionStatus(executionStatus: ExecutionStatus) {
+		this._executionStatus = new ExecutionStatus(executionStatus);
 	}
 
 	// Checks if the execution status object already exists in the executionStatusArray
-	executionStatusExists(executionID: string): boolean {
-		return this._executionStatus.some((status: ExecutionStatus) => status.execution_id === executionID);
-	}
-
-
-	addNewExecutionStatus(executionStatus: ExecutionStatus) {
-		this._executionStatus.push(executionStatus);
+	isTheSameExecutionStatus(executionID: string): boolean {
+		return this._executionStatus.execution_id === executionID;
 	}
 
 	updateExistingExecutionStatus(executionStatus: ExecutionStatus) {
-		const index = this._executionStatus.findIndex(
-			(status: ExecutionStatus) => status.execution_id === executionStatus.execution_id,
-		);
-		if (index !== -1) {
-			this._executionStatus[index] = executionStatus;
-
-			// properties to update: ended, status, status_text
-			this._executionStatus[index].ended = executionStatus.ended;
-			this._executionStatus[index].status = executionStatus.status;
-			this._executionStatus[index].status_text = executionStatus.status_text;
-
-			// update the step_results object by pushing new status element objects to the stepid arrays.
-			for (const stepId in executionStatus.step_results) {
-				const statusElements = executionStatus.step_results[stepId];
-				for (const statusElement of statusElements) {
-					this._executionStatus[index].step_results[stepId].push(statusElement);
-				}
+		// properties to update: ended, status, status_text
+		this._executionStatus.ended = executionStatus.ended;
+		this._executionStatus.status = executionStatus.status;
+		this._executionStatus.status_text = executionStatus.status_text;
+		// update the step_results object by pushing new status element objects to the stepid arrays.
+		for (const stepId in executionStatus.step_results) {
+			const statusElements = executionStatus.step_results[stepId];
+			this._executionStatus.step_results[stepId] = [];
+			for (const statusElement of statusElements) {
+				this._executionStatus.step_results[stepId].push(new StatusElement(statusElement));
 			}
 		}
+	}
+
+	addStepStatusToExecutionStatus(stepId: string, statusElement: StatusElement) {
+		if (!this._executionStatus.step_results[stepId]) {
+			this._executionStatus.step_results[stepId] = [];
+		}
+		this._executionStatus.step_results[stepId].push(new StatusElement(statusElement));
 	}
 
 	// Look for status of particular step in every execution status object
 	getStepStatus(stepId: string): Array<StatusElement> {
 		const stepStatusElements: Array<StatusElement> = [];
-		// console.log('getStepStatus().stepId: ', stepId);
-		// console.log('getStepStatus().executionStatus: ', this._executionStatus);
-		for (const executionStatus of this._executionStatus) {
-			// console.log('getStepStatus().executionStatus: ', executionStatus);
-			if (executionStatus.step_results[stepId]) {
-				// console.log('getStepStatus().step_results: ', executionStatus.step_results[stepId]);
-				for (const statusElement of executionStatus.step_results[stepId]) {
-					// console.log('getStepStatus().statusElement: ', statusElement);
-					stepStatusElements.push(statusElement);
-				}
+		if (this._executionStatus.step_results?.[stepId]) {
+			for (const statusElement of this._executionStatus.step_results[stepId]) {
+				stepStatusElements.push(new StatusElement(statusElement));
 			}
 		}
 		return stepStatusElements;
 	}
 
 	getLatestStepStatus(stepStatuses: Array<StatusElement>): StatusElement {
-		// find status element with the latest started timestamp
 		let latestStatusElement = stepStatuses[0];
 		for (const statusElement of stepStatuses) {
 			if (new Date(statusElement.started) > new Date(latestStatusElement.started)) {

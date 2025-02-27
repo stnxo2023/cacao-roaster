@@ -488,7 +488,7 @@ export const executionStatusColor: any = {
 };
 
 export const executionStatusColorStrong: any = {
-  successfully_executed: '#008127',
+  successfully_executed: 'rgb(0 129 39)',
   failed: 'rgb(180 40 41)',
   ongoing: 'rgb(9 84 109)',
   await_user_input: 'rgb(255 140 0)',

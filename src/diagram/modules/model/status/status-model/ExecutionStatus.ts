@@ -25,7 +25,7 @@ export class ExecutionStatus {
 	constructor(partialprops: Partial<ExecutionStatusProps> = {}) {
 		const props: ExecutionStatusProps = partialprops as ExecutionStatusProps;
 		this.type = 'execution-status';
-		this.execution_id = props.execution_id;
+		this.execution_id = props.execution_id || '';
 		this.playbook_id = props.playbook_id;
 		this.started = props.started ? new Date(props.started).toISOString() : props.started;
 		this.ended = props.ended ? new Date(props.ended).toISOString() : props.ended;
@@ -33,8 +33,6 @@ export class ExecutionStatus {
 		this.status_text = props.status_text;
 		this.step_results = {};
 		if (props.step_results) {
-			// creates a deep copy of this object Record<Identifier, Array<StatusElement>>
-			// this.step_results = JSON.parse(JSON.stringify(props.step_results)) as Record<Identifier, Array<StatusElement>>;
 			console.log('ExecutionStatus -> constructor -> PROPS.step_results: ', props.step_results);
 			this.step_results = { ...props.step_results };
 			console.log('ExecutionStatus -> constructor -> THIS.step_results: ', this.step_results);
@@ -44,6 +42,7 @@ export class ExecutionStatus {
 }
 
 export interface StatusElementProps {
+	type: string;
 	execution_id: Identifier;
 	step_id: Identifier;
 	started: Timestamp;
@@ -69,6 +68,7 @@ export interface StatusElement extends StatusElementProps { }
 export class StatusElement {
 	constructor(partialprops: Partial<StatusElementProps> = {}) {
 		const props: StatusElementProps = partialprops as StatusElementProps;
+		this.type = 'workflow-status';
 		this.execution_id = props.execution_id;
 		this.step_id = props.step_id;
 		this.started = props.started ? new Date(props.started).toISOString() : props.started;

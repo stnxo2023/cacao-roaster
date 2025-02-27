@@ -5,7 +5,6 @@ import { ItemInput } from './ItemInput';
 import { PanelButton } from './PanelButton';
 import { ComplexInput } from './ComplexInput';
 import type { StatusElement } from '../../model/status/status-model/ExecutionStatus';
-// import type { ExecutionStatus, StatusElement } from '../../model/status/status-model/ExecutionStatus';
 
 /**
  * The class which handles the definition properties.

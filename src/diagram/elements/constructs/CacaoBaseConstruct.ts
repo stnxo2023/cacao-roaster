@@ -156,8 +156,9 @@ export default abstract class CacaoBaseConstruct {
 	getExecutionStatusDotProps(shape: Shape, workflowExecutionStatus: any): DrawProps {
 		const strokeColor = executionStatusColorStrong[workflowExecutionStatus ?? ''];
 		const fillColor = executionStatusColor[workflowExecutionStatus ?? ''];
-		console.log('fillColor', fillColor);
-		console.log('strokeColor', strokeColor);
+		console.log('fillColor:', fillColor);
+		console.log('strokeColor:', strokeColor);
+		console.log('workflowExecutionStatus: ', workflowExecutionStatus);
 		return {
 			type: 'rectangle',
 			x: shape.width - 15,
