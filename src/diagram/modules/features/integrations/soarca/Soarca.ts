@@ -259,6 +259,7 @@ export default class Soarca {
 	}
 
 	private _triggerPlaybook() {
+		this._integrationLog.clearLog();
 		this._integrationLog.addUserLogItem(
 			'Trigger Playbook',
 			`Triggering playbook with playbook id: ${this._playbook.id}`,
