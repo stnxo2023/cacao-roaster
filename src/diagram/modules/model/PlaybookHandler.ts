@@ -77,14 +77,9 @@ export default class PlaybookHandler {
 	}
 
 	getShapeStatus(stepId: string) {
-		console.log('execution status: ', this._executionStatus);
-		console.log('stepId: ', stepId);
-		console.log('hasExecutionStatus: ', this.hasExecutionStatus());
 		if (this.hasExecutionStatus() && stepId) {
 			const stepStatuses = this.getStepStatus(stepId);
-			console.log('stepStatuses: ', stepStatuses);
 			if (stepStatuses.length > 0) {
-				console.log('getLatestStepStatus: ', this.getLatestStepStatus(this.getStepStatus(stepId)));
 				return this.getLatestStepStatus(stepStatuses).status;
 			}
 		}
@@ -628,7 +623,7 @@ export default class PlaybookHandler {
 
 	hasExecutionStatus(): boolean {
 		// check if the execution status is empty
-		return this.getExecutionStatus().execution_id === '';
+		return this.getExecutionStatus().execution_id !== '';
 	}
 
 	getExecutionStatus(): ExecutionStatus {
