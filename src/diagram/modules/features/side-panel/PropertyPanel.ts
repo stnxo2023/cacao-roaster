@@ -30,6 +30,7 @@ import { ListOfIdentifier } from './ListInput/ListOfIdentifier';
 import { ListOfObject } from './ListInput/ListOfObject';
 import { ListOfOpenVocab } from './ListInput/ListOfOpenVocab';
 import { ListOfString } from './ListInput/ListOfString';
+import { ListOfCommandsB64 } from './ListInput/ListOfCommandsB64'
 import { ListOfHeaders } from './ListInput/ListOfHeaders';
 import { PanelButton } from './PanelButton';
 import type { PanelElement } from './PanelElement';
@@ -955,12 +956,21 @@ export default class PropertyPanel {
       );
     } else if (propertyType === 'any') {
       // Handles the value variable for step variable
-      this.createLabeledInput(
+      // Nevermind, actually seems to only handle 'variables' from the StatusElement
+      const complexInput = new DictionaryVariable(
         propertyName,
-        propertyType,
+        'variable',
+        this._playbookHandler,
         container,
-        new TextAreaInput(propertyName, defaultValues),
+        (name: string, value: boolean) => {
+          this.setDisplayed(name, value);
+        },
+        () => {
+          this.reloadProperties(this._isAgentTarget);
+        },
       );
+      complexInput.setDefaultValues(defaultValues[propertyName]);
+      this._elements.push(complexInput);
     } else if (
       typeof propertyType === 'string' &&
       propertyType in schemaDictWithoutCommands &&
@@ -1014,13 +1024,17 @@ export default class PropertyPanel {
   }
 
   handleWorkflowStatusInputFromName(propertyName: string, propertyType: any, container: HTMLElement, defaultValues: any): boolean {
-    if (propertyName === 'command_b64') {
-      const labeledInput = new LabeledInput(propertyName, container);
-      labeledInput.addClass('label__b64');
-      const commandInput = new CommandInput(propertyName, defaultValues[propertyName]);
-      commandInput.setIsBase64(true);
-      labeledInput.setBasicInput(commandInput);
-      this._elements.push(labeledInput);
+    if (propertyName === 'commands_b64') {    
+      const complexInput = new ListOfCommandsB64(
+        propertyName,
+        propertyType,
+        container,
+        (name: string, value: boolean) => {
+          this.setDisplayed(name, value);
+        },
+      );
+      complexInput.setDefaultValues(defaultValues[propertyName]);
+      this._elements.push(complexInput);
     } else if (propertyName === 'notes') {
       this.createLabeledInput(
         propertyName,
@@ -1054,11 +1068,12 @@ export default class PropertyPanel {
       this._elements.push(complexInput);
     } else if (propertyName === 'automated_execution') {
       const optionList = ['false', 'true'];
+      // we use toString to defaultValues[propertyName] because it's a boolean. ExecutionStatus.ts handles casting it back to a boolean
       this.createLabeledInput(
         propertyName,
         propertyType,
         container,
-        new DropDownInput(propertyName, defaultValues[propertyName], optionList, false),
+        new DropDownInput(propertyName, defaultValues[propertyName].toString(), optionList, false),
       );
     } else {
       return false;

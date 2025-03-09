@@ -197,6 +197,10 @@ dialog .section--header {
   font-weight: 300;
   margin-left: 5px;
   text-transform: lowercase;
+  z-index: 1;
+  opacity: 1;
+  left: 0;
+  position: relative;
 }
 
 .label__time label::after {

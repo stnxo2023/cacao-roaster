@@ -1,5 +1,6 @@
 import type { Identifier } from 'lib/cacao2-js/src/data-types/Identifier';
 import type { Timestamp } from 'lib/cacao2-js/src/data-types/Timestamp';
+import { Variable } from '../../../../../../lib/cacao2-js/src/data-types/Variable';
 
 export interface ExecutionStatusProps {
 	type: string;
@@ -60,7 +61,9 @@ export interface StatusElementProps {
 	executed_by: Identifier;
 	commands_b64: string[];
 	notes: string;
-	variables: Record<string, string>;
+	variables: {
+		[k: string]: Variable;
+	};
 	automated_execution: boolean;
 }
 
@@ -80,7 +83,15 @@ export class StatusElement {
 			this.commands_b64 = [...props.commands_b64];
 		}
 		this.notes = props.notes;
-		this.variables = props.variables;
-		this.automated_execution = props.automated_execution;
+		this.variables = {};
+		for (const id in props.variables) {
+			const variable = props.variables[id];
+			this.variables[id] = new Variable(variable);
+		}
+		if (typeof(props.automated_execution) === 'boolean') {
+			this.automated_execution = props.automated_execution;
+		} else {
+			this.automated_execution = (props.automated_execution === 'true');
+		}
 	}
 }

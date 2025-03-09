@@ -33,7 +33,7 @@
             "$ref": "https://raw.githubusercontent.com/cyentific-rni/cacao-json-schemas/cacao-v2.0-csd01/schemas/data-types/identifier.json",
             "description": "The entity executed the workflow step. This can be an agent-target or a STIX 2.1 Identity object id."
         },
-        "command_b64": {
+        "commands_b64": {
             "type": "array",
             "items": {
                 "type": "string"
