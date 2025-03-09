@@ -9,6 +9,8 @@ import type IntegrationLog from '../../integration-logs/IntegrationLog';
 import { ExecutionStatus, type StatusElement } from '../../../../../diagram/modules/model/status/status-model/ExecutionStatus';
 import type { Identifier } from 'lib/cacao2-js/src/data-types/Identifier';
 
+// Defines the time interval in milliseconds between checking the execution status
+const DELAY_DURATION = 2500;
 
 const SOARCA_END_POINT = process.env.SOARCA_END_POINT || '';
 const SOARCA_INTEGRATION_TITLE = 'SOARCA Integration v0.2.0';
@@ -417,7 +419,7 @@ export default class Soarca {
 						execution_id: executionID,
 					});
 				});
-			await new Promise(resolve => setTimeout(resolve, 5000));
+			await new Promise(resolve => setTimeout(resolve, DELAY_DURATION));
 		} while (executionResponse.status === 'ongoing');
 	}
 }
