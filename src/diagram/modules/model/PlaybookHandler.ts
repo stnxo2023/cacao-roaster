@@ -8,6 +8,7 @@ import type { WhileConditionStep } from '../../../../lib/cacao2-js/src/workflows
 import type { SwitchConditionStep } from '../../../../lib/cacao2-js/src/workflows/SwitchConditionStep';
 import type { IfConditionStep } from '../../../../lib/cacao2-js/src/workflows/IfConditionStep';
 import type { ParallelStep } from '../../../../lib/cacao2-js/src/workflows/ParallelStep';
+import type ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
 import type EventBus from 'diagram-js/lib/core/EventBus';
 import { ExecutionStatus, StatusElement } from '../../modules/model/status/status-model/ExecutionStatus';
 import type { Connection, Shape } from 'diagram-js/lib/model';
@@ -43,16 +44,17 @@ export default class PlaybookHandler {
 	private _playbook: Playbook;
 	private _initialPlaybook: Playbook;
 	private _eventBus: EventBus;
-	// private _executionStatus: Record<Timestamp, ExecutionStatus>;
+	private _elementRegistry: ElementRegistry;
 	private _executionStatus: ExecutionStatus;
 	private _integrationLog: IntegrationLog;
 	static $inject: string[];
 
-	constructor(eventBus: EventBus, playbook: Playbook, executionStatus: ExecutionStatus) {
+	constructor(eventBus: EventBus, playbook: Playbook, executionStatus: ExecutionStatus, elementRegistry: ElementRegistry) {
 		this._eventBus = eventBus;
 		this._playbook = playbook;
 		this._initialPlaybook = new Playbook(playbook);
 		this._executionStatus = new ExecutionStatus();
+		this._elementRegistry = elementRegistry;
 		if (executionStatus) {
 			this.setExecutionStatus(executionStatus);
 		}
@@ -632,6 +634,10 @@ export default class PlaybookHandler {
 
 	setExecutionStatus(executionStatus: ExecutionStatus) {
 		this._executionStatus = new ExecutionStatus(executionStatus);
+		// Trigger shape updates for all steps with results
+		for (const stepId in this._executionStatus.step_results) {
+			this.updateShape(stepId);
+		}
 	}
 
 	// Checks if the execution status object already exists in the executionStatusArray
@@ -651,6 +657,8 @@ export default class PlaybookHandler {
 			for (const statusElement of statusElements) {
 				this._executionStatus.step_results[stepId].push(new StatusElement(statusElement));
 			}
+			// Trigger shape update for this step
+			this.updateShape(stepId);
 		}
 	}
 
@@ -680,6 +688,17 @@ export default class PlaybookHandler {
 			}
 		}
 		return latestStatusElement;
+	}
+
+	/**
+	 * Updates the shape of the step with the given stepId.
+	 * @param stepId - The ID of the step to update.
+	 */
+	public updateShape(stepId: string) {
+		const element = this._elementRegistry.get(stepId);
+		if (element) {
+			this._eventBus.fire('shape.update', { element });
+		}
 	}
 
 	/**
@@ -874,4 +893,4 @@ export default class PlaybookHandler {
 	}
 }
 
-PlaybookHandler.$inject = ['eventBus', 'config.playbook', 'config.executionStatus.json'];
+PlaybookHandler.$inject = ['eventBus', 'config.playbook', 'config.executionStatus.json', 'elementRegistry'];

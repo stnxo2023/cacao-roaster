@@ -82,6 +82,13 @@ export default class CacaoModeling extends BaseModeling {
     this._cacaoLayouter = layouter;
     this._canvas = canvas;
     this._graphicsFactory = graphicsFactory;
+
+    // Listen for shape update events
+    eventBus.on('shape.update', (event: any) => {
+      if (event.element) {
+        this.updateShape(event.element);
+      }
+    });
   }
 
   /**
@@ -113,12 +120,12 @@ export default class CacaoModeling extends BaseModeling {
   }
 
   clearCanvas() {
-    this._commandStack.clear;
+    this._commandStack.clear();
     this._eventBus.fire('diagram.clear');
   }
 
   newCanvas() {
-    this._commandStack.clear;
+    this._commandStack.clear();
     this._eventBus.fire('diagram.clear');
     this._eventBus.fire('load.workflow', {
       playbook: this._playbookHandler.playbook,
@@ -130,7 +137,7 @@ export default class CacaoModeling extends BaseModeling {
    * @returns a boolean, True if in expanded mode, False otherwise
    */
   isExpandedMode(): boolean {
-    for (let element of this._elementRegistry.getAll()) {
+    for (const element of this._elementRegistry.getAll()) {
       if (CacaoUtils.isConstructType(element?.type)) {
         return !element.collapsed;
       }
@@ -156,7 +163,7 @@ export default class CacaoModeling extends BaseModeling {
   ): any {
     shape = this.createShape(shape, position, target, 0, connection);
 
-    var context = {
+    const context = {
       source: source,
       position: position,
       target: target,
@@ -193,7 +200,7 @@ export default class CacaoModeling extends BaseModeling {
     if (shape.modelAssociated) {
       this._playbookHandler.removeStep(shape.id);
     }
-    let context: ContextPlaybookAttrs = {
+    const context: ContextPlaybookAttrs = {
       action: 'remove.shape',
       element: shape,
     };
@@ -217,7 +224,8 @@ export default class CacaoModeling extends BaseModeling {
     position: Point,
     target: Parent,
     parentIndex: any,
-    hints?: ModelingCreateShapeHints | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    hints?: ModelingCreateShapeHints
   ): Shape {
     let cacaoConstruct: CacaoBaseConstruct | undefined;
 
@@ -249,7 +257,7 @@ export default class CacaoModeling extends BaseModeling {
       bottom: 0,
       left: 0,
     });
-    let context: ContextPlaybookAttrs = {
+    const context: ContextPlaybookAttrs = {
       action: 'add.shape',
       element: shape as Shape,
     };
@@ -263,7 +271,7 @@ export default class CacaoModeling extends BaseModeling {
 
   updateShape(shape: Shape) {
     this.updateGraphicalShapeOnCanvas(shape);
-    let contextEvent: ContextPlaybookAttrs = {
+    const contextEvent: ContextPlaybookAttrs = {
       action: 'update.shape',
       element: shape,
     };
@@ -294,7 +302,7 @@ export default class CacaoModeling extends BaseModeling {
   ): Connection {
     if (!attrs || !attrs.type) {
       throw new Error(
-        "can't connect the two shapes because there is no type for the connection provided",
+        'can\'t connect the two shapes because there is no type for the connection provided'
       );
     }
     return this.createConnection(
@@ -353,7 +361,7 @@ export default class CacaoModeling extends BaseModeling {
       hints,
     );
     this._canvas.addConnection(connection as Connection, parent, parentIndex);
-    let context: ContextPlaybookAttrs = {
+    const context: ContextPlaybookAttrs = {
       action: 'add.connection',
       element: connection as Connection,
     };
@@ -382,7 +390,7 @@ export default class CacaoModeling extends BaseModeling {
     }
     super.removeConnection(connection, hints);
 
-    let context: ContextPlaybookAttrs = {
+    const context: ContextPlaybookAttrs = {
       action: 'remove.connection',
       element: connection,
     };
@@ -413,7 +421,7 @@ export default class CacaoModeling extends BaseModeling {
       connection: connection,
       type: type,
     });
-    let context: ContextPlaybookAttrs = {
+    const context: ContextPlaybookAttrs = {
       action: 'update.connection',
       element: connection,
     };
