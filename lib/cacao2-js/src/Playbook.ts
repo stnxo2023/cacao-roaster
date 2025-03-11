@@ -162,10 +162,15 @@ export class Playbook {
     }
     this.data_marking_definitions = {};
     for (const id in props.data_marking_definitions) {
-      let marking = props.data_marking_definitions[id];
-      marking = DataMarkingFactory.create(marking);
-      if (marking && marking.id) {
-        this.data_marking_definitions[marking.id] = marking;
+      if (Object.prototype.hasOwnProperty.call(props.data_marking_definitions, id)) {
+        let marking = props.data_marking_definitions[id];
+        marking = DataMarkingFactory.create(marking);
+        if (marking.type !== 'marking-tlp') {
+          marking.id = id;
+        }
+        if (marking.id) {
+          this.data_marking_definitions[marking.id] = marking;
+        }
       }
     }
     this.signatures = [];
@@ -219,10 +224,16 @@ export class Playbook {
     ) {
       this.data_marking_definitions = {};
       for (const id in props.data_marking_definitions) {
-        let marking = props.data_marking_definitions[id];
-        marking = DataMarkingFactory.create(marking);
-        marking.id = id;
-        this.data_marking_definitions[marking.id] = marking;
+        if (Object.prototype.hasOwnProperty.call(props.data_marking_definitions, id)) {
+          let marking = props.data_marking_definitions[id];
+          marking = DataMarkingFactory.create(marking);
+          if (marking.type !== 'marking-tlp') {
+            marking.id = id;
+          }
+          if (marking.id) {
+            this.data_marking_definitions[marking.id] = marking;
+          }
+        }
       }
       return true;
     } else if (prop === 'playbook_extensions' && props.playbook_extensions) {
@@ -247,7 +258,7 @@ export class Playbook {
   update(props: Partial<PlaybookProps>): void {
     for (const prop in props) {
       if (
-        props.hasOwnProperty(prop) &&
+        Object.prototype.hasOwnProperty.call(props, prop) &&
         props[prop as keyof PlaybookProps] !== undefined &&
         prop in this
       ) {
