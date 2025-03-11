@@ -15,12 +15,10 @@ const DELAY_DURATION = 2500;
 const SOARCA_END_POINT = process.env.SOARCA_END_POINT || '';
 const SOARCA_INTEGRATION_TITLE = 'SOARCA Integration v1.0.0';
 const PING_SOARCA_BUTTON_TEXT = 'Ping SOARCA';
-const SOARCA_INFO_TEXT = `This is the alpha version of the SOARCA integration. 
-Certain limitations exist: 
-- Accepts only soarca_ssh and soarca_http-api agents.
-- No support for out_args
-- Only string variables are accepted.
-- Only == and != operators are supported.
+const SOARCA_INFO_TEXT = `Currently CACAO Roaster integrates with SOARCA's ssh (soarca_ssh) and http-api (soarca_http-api) agents.
+
+Soarca is under development. For other supported features, please refer to the official SOARCA documentation: https://github.com/COSSAS/SOARCA.
+
 Triggering the playbook will set its created and modified timestamps
 if not set.`;
 
@@ -155,7 +153,7 @@ export default class Soarca {
       </div>
 
       <div class="dialog__property">
-        <label class="property__label" for="soarca-integration-input">Limitations</label>
+        <label class="property__label" for="soarca-integration-input">Integration Information</label>
         <textarea class="property__input" readonly>${this._soarcaInfoText}</textarea>
       </div>
 

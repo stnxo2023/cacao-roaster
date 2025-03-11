@@ -37,8 +37,16 @@ The CACAO Roaster web application complies fully to the [CACAO v2 CS01](https://
 
 ## Project status
 
-The CACAO Roaster is now in a stable version 1.0.0 and is under continuous maintenance and further development.
-The development team has an overview of open issues/working items, and we will shortly share them on the GitHub issues page.
+The CACAO Roaster is now in a stable version 1.3.0 and is under continuous maintenance.
+The maintenance team has an overview of open issues/working items on the GitHub issues page.
+
+### Integration with CACAO Orchestrator
+
+CACAO Roaster includes a basic integration with the CACAO Orchesrtator/executor [SOARCA](https://github.com/COSSAS/SOARCA). 
+To use that integration, you need to have a running instance of SOARCA and configure the CACAO Roaster to use it, by setting the `SOARCA_URL` environment variable to the SOARCA instance URL or simply provide the SOARCA URL in the SOARCA integration window in the CACAO Roaster.
+
+Itegration with CACAO Executor - SOARCA.
+![Itegration with CACAO Executor - SOARCA.](/artwork/CACAO-Roaster-Integraion.png)
 
 ## Integration with other existing OCA or OASIS projects
 
@@ -49,13 +57,13 @@ CACAO, STIX, OpenC2
 Start screen of the application.
 ![Start screen of the application](/artwork/CACAO-Roaster-1.png)
 
-Creating a new playbook.
-![Start screen of creating new playbook](/artwork/CACAO-Roaster-2.png)
+Example of a playbook view.
+![Example of a playbook view.](/artwork/CACAO-Roaster-2.png)
 
 
 # Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you up and running with the project on your local machine for development purposes. See deployment for notes on how to deploy the project on a live system.
 
 Prerequisites:
 
@@ -125,7 +133,7 @@ CACAO Roaste has a Slack channel on the OCA Slack. [Join here](https://join.slac
 
 ## License
 
-*Example text*: This project is licensed under the Apache 2.0 License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the Apache 2.0 License - see the [LICENSE.md](LICENSE.md) file for details
 
 # Governance
 
