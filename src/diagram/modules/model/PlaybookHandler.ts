@@ -175,6 +175,11 @@ export default class PlaybookHandler {
 			} else {
 				this._playbook.update(obj);
 			}
+			const context: ContextPlaybookAttrs = {
+				action: 'update.metadata',
+				element: this._playbook as any,
+			};
+			this._eventBus.fire('playbook.changed', context);
 		}
 	}
 
