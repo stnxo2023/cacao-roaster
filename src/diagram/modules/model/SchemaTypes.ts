@@ -436,7 +436,7 @@ export const commonTypeDict: { [key: string]: string } = {
   'user-auth': 'authentication-info',
 };
 
-export const addressTypes: string[] = ['ipv4', 'ipv6', 'l2mac', 'url', 'vlan'];
+export const addressTypes: string[] = ['dname', 'ipv4', 'ipv6', 'l2mac', 'url', 'vlan'];
 
 export const tlpv2_levels: string[] = [
   'TLP:RED',
