@@ -2,7 +2,6 @@ import canonicalize from 'canonicalize';
 import type PlaybookHandler from '../../model/PlaybookHandler';
 import { Signature } from '../../../../../lib/cacao2-js/src/data-types/Signature';
 import PropertyPanel from '../side-panel/PropertyPanel';
-// biome-ignore lint/style/useNodejsImportProtocol: <explanation>
 import crypto from 'crypto';
 import UserSettingsProps from '../../../../app/UserSettingsProps';
 import { extractSchemaTypes, schemaDictWithoutAgentTarget } from '../../model/SchemaTypes';
@@ -351,6 +350,9 @@ export default class CacaoSigning {
 					signature.public_key = UserSettingsProps.instance.publicKey;
 					await signingMethod(signature, UserSettingsProps.instance.privateKey);
 				} catch (e) {
+					if (process.env.NODE_ENV === 'development') {
+						console.error('Error during signing:', e);
+					}
 					errorMessage.innerHTML = 'issue in the signing process';
 					return;
 				}
@@ -384,7 +386,6 @@ export default class CacaoSigning {
 		counterSignature.related_version = this._playbookHandler.playbook.modified;
 		counterSignature.value = '';
 		counterSignature.revoked = false;
-		// biome-ignore lint/style/noNonNullAssertion: <explanation>
 		counterSignature.signature = undefined!;
 
 		// Step 2: Temporarily remove existing signature from the playbook
@@ -436,7 +437,6 @@ export default class CacaoSigning {
 		signature.related_version = this._playbookHandler.playbook.modified;
 		signature.value = '';
 		signature.revoked = false;
-		// biome-ignore lint/style/noNonNullAssertion: <explanation>
 		signature.signature = undefined!;
 
 		// Step 2: Temporarily remove existing signature from the playbook
@@ -509,7 +509,6 @@ export default class CacaoSigning {
 
 		const valueSignature = signature.value;
 		signature.value = '';
-		// biome-ignore lint/style/noNonNullAssertion: <explanation>
 		signature.signature = undefined!;
 		this._playbookHandler.playbook.signatures = [initialSignature];
 
@@ -543,7 +542,10 @@ export default class CacaoSigning {
 
 			this._playbookHandler.playbook.signatures = playbookSignatures;
 			return verified ? 'passed' : 'incorrect';
-		} catch (_) {
+		} catch (e) {
+			if (process.env.NODE_ENV === 'development') {
+				console.error('Error during signature verification:', e);
+			}
 			this._playbookHandler.playbook.signatures = playbookSignatures;
 			return 'failed';
 		}

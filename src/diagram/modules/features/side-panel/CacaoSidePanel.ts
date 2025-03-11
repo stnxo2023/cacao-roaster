@@ -137,10 +137,8 @@ export default class CacaoSidePanel {
 	closeSidePanel() {
 		this._hide();
 		this._stepId = '';
-		// biome-ignore lint/style/noNonNullAssertion: <explanation>
 		this._shape = undefined!;
 		this._objectOpened = undefined;
-		// biome-ignore lint/style/noNonNullAssertion: <explanation>
 		this._propertyPanel = undefined!;
 	}
 

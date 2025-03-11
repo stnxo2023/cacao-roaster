@@ -1,7 +1,5 @@
 export default class cacaoDialog {
 	private static _container: HTMLElement = document.getElementsByTagName('body')[0];
-	// temporal fix for Biome linter "to not create static classes"
-	private temporalFix = '';
 	static $inject: string[];
 
 	/**

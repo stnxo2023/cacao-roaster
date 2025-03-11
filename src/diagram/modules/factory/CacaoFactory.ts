@@ -35,7 +35,6 @@ import CacaoOnIfTrueConditionConnection from '../../elements/connections/impleme
  * This class provide static methods to get cacao element using the type/shape/connection
  */
 
-// biome-ignore lint/complexity/noStaticOnlyClass: <explanation>
 export default abstract class CacaoFactory {
   /**
    * this method instanciate a CacaoConstruct depending its type/Shape
