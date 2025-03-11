@@ -1,7 +1,7 @@
 import type Canvas from 'diagram-js/lib/core/Canvas';
 import type ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
 import type { Playbook } from 'lib/cacao2-js';
-import { query as domQuery, remove as domRemove } from 'min-dom';
+import { query as domQuery } from 'min-dom';
 import { innerSVG } from 'tiny-svg';
 import { v4 as uuidv4 } from 'uuid';
 import CacaoUtils from '../../core/CacaoUtils';
@@ -18,7 +18,7 @@ import { PanelButton } from '../side-panel/PanelButton';
 const COORDINATES_EXTENSION_CONFIRMATION =
 	'Beware: The original playbook had the coordinate extension included. Not including it when exporting will create a new playbook.';
 const COORDINATES_EXTENSION_REMOVAL_CONFIRMATION =
-	"Beware: The original playbook didn't have the coordinate extension included. Including it when exporting will create a new playbook.";
+	'Beware: The original playbook didn\'t have the coordinate extension included. Including it when exporting will create a new playbook.';
 const NOT_OWNER_MODIFIED_MESSAGE =
 	'You have modified a playbook that is not yours. This action will create a new playbook.';
 const NOT_OWNER_NOT_MODIFIED_MESSAGE =
@@ -80,9 +80,8 @@ export default class CacaoExporter {
 
 		// Create OK Button and its handler
 		const button = new PanelButton('Ok', buttonContainer, () => {
-			exportType === 'CACAO JSON'
-				? this.exportToJson(exportWithCoordinates)
-				: this.exportToStixJson(exportWithCoordinates);
+			const exportFn = exportType === 'CACAO JSON' ? this.exportToJson : this.exportToStixJson;
+			exportFn.call(this, exportWithCoordinates);
 			dialog.close();
 			dialog.remove();
 		});
