@@ -13,7 +13,7 @@ import type { Identifier } from 'lib/cacao2-js/src/data-types/Identifier';
 const DELAY_DURATION = 2500;
 
 const SOARCA_END_POINT = process.env.SOARCA_END_POINT || '';
-const SOARCA_INTEGRATION_TITLE = 'SOARCA Integration v0.2.0';
+const SOARCA_INTEGRATION_TITLE = 'SOARCA Integration v1.0.0';
 const PING_SOARCA_BUTTON_TEXT = 'Ping SOARCA';
 const SOARCA_INFO_TEXT = `This is the alpha version of the SOARCA integration. 
 Certain limitations exist: 
