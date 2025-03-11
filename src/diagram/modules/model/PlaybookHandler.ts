@@ -614,7 +614,7 @@ export default class PlaybookHandler {
 		for (const index in this._playbook.markings) {
 			const markingId = this._playbook.markings[index];
 			const dataMarkingDefinition = this._playbook.data_marking_definitions[markingId];
-			if (dataMarkingDefinition.type === 'marking-tlp') {
+			if (dataMarkingDefinition && dataMarkingDefinition.type === 'marking-tlp') {
 				return (dataMarkingDefinition as any).tlpv2_level;
 			}
 		}

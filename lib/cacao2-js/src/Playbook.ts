@@ -13,6 +13,7 @@ import { DataMarking } from './data-markings/DataMarking';
 import { DataMarkingFactory } from './data-markings/DataMarkingFactory';
 import { AuthenticationInfo } from './authentication-info/AuthenticationInfo';
 import { AuthenticationInfoFactory } from './authentication-info/AuthenticationInfoFactory';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface PlaybookProps {
   type: 'playbook';
@@ -161,18 +162,32 @@ export class Playbook {
       this.extension_definitions[id] = new ExtensionDefinition(extension);
     }
     this.data_marking_definitions = {};
+    // Handle data marking definitions independently
     for (const id in props.data_marking_definitions) {
       if (Object.prototype.hasOwnProperty.call(props.data_marking_definitions, id)) {
-        let marking = props.data_marking_definitions[id];
-        marking = DataMarkingFactory.create(marking);
-        if (marking.type !== 'marking-tlp') {
+        const marking = props.data_marking_definitions[id];
+        
+        if (marking.type === 'marking-iep') {
+          // For IEP markings, use existing ID if valid, or generate new one
+          const markingId = marking.id?.startsWith('marking-iep--') ? marking.id : `marking-iep--${uuidv4()}`;
+          marking.id = markingId;
+          this.data_marking_definitions[markingId] = marking;
+        } else if (marking.type === 'marking-tlp') {
+          // For TLP markings, get the standardized ID based on the TLP level
+          const tempTlp = DataMarkingFactory.create({ type: 'marking-tlp', tlpv2_level: (marking as any).tlpv2_level });
+          marking.id = tempTlp.id;
+          this.data_marking_definitions[tempTlp.id] = marking;
+        } else {
+          // For other markings, preserve original ID
           marking.id = id;
-        }
-        if (marking.id) {
-          this.data_marking_definitions[marking.id] = marking;
+          this.data_marking_definitions[id] = marking;
         }
       }
     }
+
+    // Handle markings array completely independently - just store references
+    this.markings = props.markings ? Array.from(props.markings) : [];
+
     this.signatures = [];
     if (props.signatures) {
       this.signatures = props.signatures.map(
@@ -225,16 +240,29 @@ export class Playbook {
       this.data_marking_definitions = {};
       for (const id in props.data_marking_definitions) {
         if (Object.prototype.hasOwnProperty.call(props.data_marking_definitions, id)) {
-          let marking = props.data_marking_definitions[id];
-          marking = DataMarkingFactory.create(marking);
-          if (marking.type !== 'marking-tlp') {
+          const marking = props.data_marking_definitions[id];
+          
+          if (marking.type === 'marking-iep') {
+            // For IEP markings, use existing ID if valid, or generate new one
+            const markingId = marking.id?.startsWith('marking-iep--') ? marking.id : `marking-iep--${uuidv4()}`;
+            marking.id = markingId;
+            this.data_marking_definitions[markingId] = marking;
+          } else if (marking.type === 'marking-tlp') {
+            // For TLP markings, get the standardized ID based on the TLP level
+            const tempTlp = DataMarkingFactory.create({ type: 'marking-tlp', tlpv2_level: (marking as any).tlpv2_level });
+            marking.id = tempTlp.id;
+            this.data_marking_definitions[tempTlp.id] = marking;
+          } else {
+            // For other markings, preserve original ID
             marking.id = id;
-          }
-          if (marking.id) {
-            this.data_marking_definitions[marking.id] = marking;
+            this.data_marking_definitions[id] = marking;
           }
         }
       }
+      return true;
+    } else if (prop === 'markings') {
+      // Handle markings as pure reference array - no object creation/modification
+      this.markings = props.markings ? Array.from(props.markings) : [];
       return true;
     } else if (prop === 'playbook_extensions' && props.playbook_extensions) {
       this.playbook_extensions = {};
