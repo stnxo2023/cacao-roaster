@@ -17,7 +17,7 @@ const SOARCA_INTEGRATION_TITLE = 'SOARCA Integration v1.0.0';
 const PING_SOARCA_BUTTON_TEXT = 'Ping SOARCA';
 const SOARCA_INFO_TEXT = `Currently CACAO Roaster integrates with SOARCA's ssh (soarca_ssh) and http-api (soarca_http-api) agents.
 
-Soarca is under development. For other supported features, please refer to the official SOARCA documentation: https://github.com/COSSAS/SOARCA.
+Soarca is under development. For other supported features, please refer to the official SOARCA documentation: https://cossas.github.io/SOARCA/docs/.
 
 Triggering the playbook will set its created and modified timestamps
 if not set.`;
