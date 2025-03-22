@@ -27,3 +27,135 @@ body {
   background: var(--scrollbar);
   border-radius: 5px;
 }
+
+/* Loading Spinner */
+.loading-spinner {
+  display: inline-block;
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+
+.loading-spinner:after {
+  content: " ";
+  display: block;
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  border: 2px solid var(--select, #2196F3);
+  border-color: var(--select, #2196F3) transparent var(--select, #2196F3) transparent;
+  animation: loading-spinner 1.2s linear infinite;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Loading modal styles */
+.loading-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px 24px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  z-index: 100001;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  min-width: 160px;
+  animation: modalFadeIn 0.25s ease-out forwards;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: auto !important;
+  will-change: transform, opacity;
+}
+
+/* Separate animation for floating effect - applied with JS */
+.loading-modal.active {
+  animation: float 3s infinite ease-in-out;
+}
+
+/* Backdrop for the modal */
+.loading-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 100000;
+  animation: backdropFadeIn 0.25s ease-out forwards;
+  transition: opacity 0.2s ease;
+  pointer-events: auto !important;
+  will-change: opacity;
+}
+
+/* Separate fade in animations to avoid conflicts */
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translate(-50%, -45%) scale(0.98); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes backdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Subtle floating animation for modal */
+@keyframes float {
+  0% { transform: translate(-50%, -50%); }
+  50% { transform: translate(-50%, -52%); }
+  100% { transform: translate(-50%, -50%); }
+}
+
+.loading-text {
+  margin-top: 12px;
+  font-family: Poppins, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Animation for updating text in the loading modal */
+@keyframes textUpdate {
+  0% { opacity: 0.5; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes loading-spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Hide loading elements by default */
+.loading-modal.hidden,
+.loading-backdrop.hidden {
+  display: none;
+  opacity: 0;
+}
+
+/* Style for loading overlay when it's applied to a button */
+.window__button .loading-overlay,
+.dialog__buttonList .loading-overlay {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.2s ease-in-out, subtle-pulse 2s infinite ease-in-out;
+}
+
+/* Subtle pulse effect for the loading indicator */
+@keyframes subtle-pulse {
+  0% { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
+  50% { box-shadow: 0 4px 8px rgba(33, 150, 243, 0.15); }
+  100% { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
+}

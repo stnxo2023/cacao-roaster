@@ -195,49 +195,206 @@ export default class CacaoWindow {
 		dialog.showModal();
 	}
 
+	/* Creates a loading modal to show while importing a playbook
+	 * @param message - The message to display with the loading spinner
+	 * @returns Object with modal and backdrop elements
+	 */
+	private _createLoadingModal(message: string = 'Importing...'): { modal: HTMLElement, backdrop: HTMLElement } {
+		// Create backdrop
+		const backdrop = document.createElement('div');
+		backdrop.className = 'loading-backdrop';
+		
+		// Create modal
+		const modal = document.createElement('div');
+		modal.className = 'loading-modal';
+		modal.style.opacity = '1'; // Ensure opacity is set
+		modal.style.transform = 'translate(-50%, -50%)'; // Ensure transform is set
+		
+		// Create spinner
+		const spinner = document.createElement('div');
+		spinner.className = 'loading-spinner';
+		
+		// Create text
+		const text = document.createElement('div');
+		text.className = 'loading-text';
+		text.textContent = message;
+		
+		// Assemble elements
+		modal.appendChild(spinner);
+		modal.appendChild(text);
+		
+		// Add to document body for proper positioning
+		document.body.appendChild(backdrop);
+		document.body.appendChild(modal);
+		
+		// Force a reflow to ensure the animation runs
+		void modal.offsetWidth;
+		void backdrop.offsetWidth;
+		
+		// Add active class after the initial animation completes
+		setTimeout(() => {
+			if (modal && document.body.contains(modal)) {
+				modal.classList.add('active');
+			}
+		}, 300);
+		
+		console.log('Loading modal created:', message, modal, backdrop);
+		
+		return { modal, backdrop };
+	}
+
+	/* Removes the loading modal with a fade-out animation
+	 * @param elements - The modal and backdrop elements to remove
+	 */
+	private _removeLoadingModal(elements: { modal: HTMLElement, backdrop: HTMLElement }): void {
+		console.log('Removing loading modal', elements);
+		// Add fade-out class to both elements
+		if (elements.modal) {
+			elements.modal.style.opacity = '0';
+			elements.modal.style.transform = 'translate(-50%, -50%) scale(0.95)';
+		}
+		if (elements.backdrop) {
+			elements.backdrop.style.opacity = '0';
+		}
+		
+		// Ensure no blur remains on the document body
+		document.body.classList.remove('blurred');
+		document.body.classList.remove('blur');
+		document.body.style.filter = 'none';
+		
+		// Wait for animation to complete before removing from DOM
+		setTimeout(() => {
+			if (elements.modal && elements.modal.parentNode) {
+				elements.modal.parentNode.removeChild(elements.modal);
+			}
+			if (elements.backdrop && elements.backdrop.parentNode) {
+				elements.backdrop.parentNode.removeChild(elements.backdrop);
+			}
+			
+			// Double-check that blur is removed after elements are gone
+			document.body.classList.remove('blurred');
+			document.body.classList.remove('blur');
+			document.body.style.filter = 'none';
+			
+			console.log('Loading modal removed from DOM');
+		}, 200); // Match this timing with CSS transition duration
+	}
+
+	/* Updates the loading modal message
+	 * @param modal - The modal element
+	 * @param message - The new message to display
+	 */
+	private _updateLoadingMessage(modal: HTMLElement, message: string): void {
+		console.log('Updating loading message to:', message);
+		const loadingText = modal.querySelector('.loading-text') as HTMLElement;
+		if (loadingText) {
+			// Force a reflow to ensure the animation and text change is visible
+			loadingText.textContent = message;
+			void loadingText.offsetWidth;
+			
+			// Briefly highlight the text change with a subtle animation
+			loadingText.style.animation = 'none';
+			setTimeout(() => {
+				loadingText.style.animation = 'textUpdate 0.5s ease';
+			}, 10);
+		}
+	}
+
 	// Handler for the import button in the dialog for importing a CACAO playbook from text
 	private importPlaybookFromTextButtonHandler(
 		textArea: HTMLTextAreaElement,
 		dialog: HTMLDialogElement,
 	): void {
-		try {
-			let playbook = textArea.value;
-			if (playbook === '') {
-				throw new Error('The text area is empty.');
-			}
-
-			// Check the value of the radio button
-			const importOption = document.querySelector(
-				'input[name="importOption"]:checked',
-			) as HTMLInputElement;
-			if (importOption === null) {
-				throw new Error('Please select an import option.');
-			}
-
-			const importOptionValue = importOption.value;
-			if (importOptionValue.includes('base64')) {
-				// Checks if the playbook is base64 encoded
-				const base64Matcher =
-					/^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{4})$/;
-				if (!base64Matcher.test(playbook))
-					throw new Error('The playbook is not base64 encoded.');
-				// Decodes the base64 encoded playbook to plaintext
-				playbook = Buffer.from(playbook, 'base64').toString('utf-8');
-			}
-
-			// Parses the plaintext to JSON format
-			const playbookJson = JSON.parse(playbook);
-			// Checks if the JSON is a CACAO playbook and loads the editor
-			if (isCacaoPlaybook(playbookJson)) {
-				this.loadEditor(new Playbook(playbookJson));
-				document.body.classList.remove('blurred');
-				dialog.close();
-			} else {
-				throw new Error('The JSON imported is not a CACAO playbook');
-			}
-		} catch (e: any) {
-			cacaoDialog.showAlert('Error when trying to import the playbook', e.message);
+		// Get the input values before closing the dialog
+		let playbook = textArea.value;
+		
+		// Check if text area is empty
+		if (playbook === '') {
+			cacaoDialog.showAlert('Error when trying to import the playbook', 'The text area is empty.');
+			return;
 		}
+
+		// Check the value of the radio button
+		const importOption = document.querySelector(
+			'input[name="importOption"]:checked',
+		) as HTMLInputElement;
+		if (importOption === null) {
+			cacaoDialog.showAlert('Error when trying to import the playbook', 'Please select an import option.');
+			return;
+		}
+		
+		// Store the import option value
+		const importOptionValue = importOption.value;
+		
+		// Close the dialog first and ensure blur is removed
+		document.body.classList.remove('blurred');
+		// Also remove any other potential blur classes
+		document.body.classList.remove('blur');
+		document.body.style.filter = 'none';
+		
+		dialog.close();
+		dialog.remove();
+		
+		// Now show the loading modal - after the dialog is closed
+		const loadingElements = this._createLoadingModal('Processing playbook...');
+		
+		// Make sure loading elements have highest z-index
+		if (loadingElements.modal && loadingElements.backdrop) {
+			loadingElements.modal.style.zIndex = '100001';
+			loadingElements.backdrop.style.zIndex = '100000';
+		}
+		
+		// Process the playbook with staged updates for better user feedback
+		const processPlaybook = async () => {
+			try {
+				// Stage 1: Process base64 if needed
+				if (importOptionValue.includes('base64')) {
+					// Allow UI to update before changing text
+					await new Promise(resolve => setTimeout(resolve, 500));
+					
+					// Checks if the playbook is base64 encoded
+					const base64Matcher =
+						/^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{4})$/;
+					if (!base64Matcher.test(playbook)) {
+						this._removeLoadingModal(loadingElements);
+						throw new Error('The playbook is not base64 encoded.');
+					}
+					
+					// Update loading message
+					this._updateLoadingMessage(loadingElements.modal, 'Decoding base64...');
+					await new Promise(resolve => setTimeout(resolve, 500));
+					
+					// Decodes the base64 encoded playbook to plaintext
+					playbook = Buffer.from(playbook, 'base64').toString('utf-8');
+				}
+
+				// Stage 2: Parse JSON
+				this._updateLoadingMessage(loadingElements.modal, 'Parsing JSON...');
+				await new Promise(resolve => setTimeout(resolve, 500));
+				
+				// Parses the plaintext to JSON format
+				const playbookJson = JSON.parse(playbook);
+				
+				// Stage 3: Import playbook
+				this._updateLoadingMessage(loadingElements.modal, 'Importing playbook...');
+				await new Promise(resolve => setTimeout(resolve, 500));
+				
+				// Checks if the JSON is a CACAO playbook and loads the editor
+				if (isCacaoPlaybook(playbookJson)) {
+					this.loadEditor(new Playbook(playbookJson));
+					this._removeLoadingModal(loadingElements);
+				} else {
+					this._removeLoadingModal(loadingElements);
+					throw new Error('The JSON imported is not a CACAO playbook');
+				}
+			} catch (e: any) {
+				this._removeLoadingModal(loadingElements);
+				cacaoDialog.showAlert('Error when trying to import the playbook', e.message);
+			}
+		};
+		
+		// Start the processing
+		processPlaybook();
 	}
 
 	// Creates a radio button for importing a CACAO playbook in different formats
@@ -302,13 +459,62 @@ export default class CacaoWindow {
 				}
 
 				if (fileIsJSON(file)) {
-					const reader = new FileReader();
-					reader.onload = (e: any) => {
+					// Ensure no blur effect is active
+					document.body.classList.remove('blurred');
+					document.body.classList.remove('blur');
+					document.body.style.filter = 'none';
+					
+					// Find the openButton to update its visual state
+					const openButton = document.querySelector('.button--open');
+					
+					// Only disable the clicked button, not all buttons
+					if (openButton) {
+						(openButton as HTMLElement).classList.add('entry--disable');
+						(openButton as HTMLElement).style.pointerEvents = 'none';
+					}
+					
+					// Show loading modal for the file reading process
+					const loadingElements = this._createLoadingModal('Reading file...');
+					
+					// Make sure loading elements have highest z-index
+					if (loadingElements.modal && loadingElements.backdrop) {
+						loadingElements.modal.style.zIndex = '100001';
+						loadingElements.backdrop.style.zIndex = '100000';
+					}
+					
+					// Process the file with staged updates for better user feedback
+					const processFile = async () => {
 						try {
-							const fileContent = e.target.result as string;
+							// Stage 1: Read file
+							const reader = new FileReader();
+							
+							// Set up promise to handle file reading
+							const fileContent = await new Promise<string>((resolve, reject) => {
+								reader.onload = (e: any) => resolve(e.target.result as string);
+								reader.onerror = () => reject(new Error('Failed to read the file'));
+								reader.readAsText(file);
+							});
+							
+							// Stage 2: Parse JSON
+							await new Promise(resolve => setTimeout(resolve, 500));
+							this._updateLoadingMessage(loadingElements.modal, 'Parsing JSON...');
+							await new Promise(resolve => setTimeout(resolve, 500));
+							
 							const jsonFile = JSON.parse(fileContent);
+							
+							// Stage 3: Import playbook
+							this._updateLoadingMessage(loadingElements.modal, 'Importing playbook...');
+							await new Promise(resolve => setTimeout(resolve, 500));
+							
 							if (isCacaoPlaybook(jsonFile)) {
 								this.loadEditor(new Playbook(jsonFile));
+								this._removeLoadingModal(loadingElements);
+								
+								// Re-enable button after successful import
+								if (openButton) {
+									(openButton as HTMLElement).classList.remove('entry--disable');
+									(openButton as HTMLElement).style.pointerEvents = '';
+								}
 							} else if (
 								jsonFile.playbook !== undefined &&
 								isCacaoPlaybook(jsonFile.playbook)
@@ -317,14 +523,35 @@ export default class CacaoWindow {
 									new Playbook(jsonFile.playbook),
 									jsonFile.execution_status,
 								);
+								this._removeLoadingModal(loadingElements);
+								
+								// Re-enable button after successful import
+								if (openButton) {
+									(openButton as HTMLElement).classList.remove('entry--disable');
+									(openButton as HTMLElement).style.pointerEvents = '';
+								}
 							} else {
+								// Re-enable button
+								if (openButton) {
+									(openButton as HTMLElement).classList.remove('entry--disable');
+									(openButton as HTMLElement).style.pointerEvents = '';
+								}
+								this._removeLoadingModal(loadingElements);
 								throw new Error('The JSON imported is not a CACAO playbook');
 							}
 						} catch (e: any) {
+							// Re-enable button
+							if (openButton) {
+								(openButton as HTMLElement).classList.remove('entry--disable');
+								(openButton as HTMLElement).style.pointerEvents = '';
+							}
+							this._removeLoadingModal(loadingElements);
 							cacaoDialog.showAlert('Error when trying to import a file', e.message);
 						}
 					};
-					reader.readAsText(file);
+					
+					// Start processing the file
+					processFile();
 				}
 			},
 			false,
