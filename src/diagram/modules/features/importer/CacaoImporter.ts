@@ -16,7 +16,8 @@ import { assign } from 'min-dash';
 import CacaoUtils from '../../core/CacaoUtils';
 
 /**
- * this class is responsible to import a playbook in the canvas
+ * This class is responsible for importing a playbook in the canvas
+ * with optimized caching and processing mechanisms
  */
 export default class CacaoImporter {
   private _playbookHandler: PlaybookHandler;
@@ -25,6 +26,13 @@ export default class CacaoImporter {
   private _canvas: Canvas;
   private _cacaoAutoPlace: CacaoAutoPlace;
   private _elementRegistry: ElementRegistry;
+  
+  // Cache for construct types to avoid repeated creation
+  private _constructTypeCache: Map<string, CacaoConstructType>;
+  // Cache for processed workflow steps
+  private _processedSteps: Set<string>;
+  // Cache for construct instances
+  private _constructCache: Map<string, any>;
 
   static $inject: string[];
 
@@ -43,6 +51,11 @@ export default class CacaoImporter {
     this._cacaoAutoPlace = cacaoAutoPlace;
     this._elementRegistry = elementRegistry;
 
+    // Initialize caches
+    this._constructTypeCache = new Map();
+    this._processedSteps = new Set();
+    this._constructCache = new Map();
+
     this._eventBus.on('cacao.import.start', (event: any) => {
       const playbook: Playbook = event.playbook;
       this.loadPlaybook(playbook);
@@ -55,12 +68,38 @@ export default class CacaoImporter {
   }
 
   /**
+   * Get cached construct type or compute and cache it
+   */
+  private getCachedConstructType(modelType: string): CacaoConstructType {
+    if (!this._constructTypeCache.has(modelType)) {
+      this._constructTypeCache.set(modelType, getCacaoTypeFromModelType(modelType));
+    }
+    return this._constructTypeCache.get(modelType)!;
+  }
+
+  /**
+   * Get cached construct or create and cache it
+   */
+  private getCachedConstruct(type: string, constructType: CacaoConstructType) {
+    const cacheKey = `${type}_${constructType}`;
+    if (!this._constructCache.has(cacheKey)) {
+      this._constructCache.set(cacheKey, CacaoFactory.getCacaoConstruct(undefined, constructType));
+    }
+    return this._constructCache.get(cacheKey);
+  }
+
+  /**
    * this method add all the workflow steps to the canvas
    *  - 1) add start step to the canvas
    *  - 2) add every steps of the playbook to the canvas
    * @param playbook
    */
   private loadPlaybook(playbook: Playbook) {
+    // Clear caches on new playbook load
+    this._constructTypeCache.clear();
+    this._processedSteps.clear();
+    this._constructCache.clear();
+    
     this._cacaoModeling.clearCanvas();
     this._playbookHandler.loadPlaybook(playbook);
     this.loadWorkflow(playbook);
@@ -76,6 +115,13 @@ export default class CacaoImporter {
       [k: string]: Partial<WorkflowStep>;
     } = new Playbook(playbook).workflow;
 
+    // Pre-process and cache all construct types
+    Object.values(queue).forEach(step => {
+      if (step.type) {
+        this.getCachedConstructType(step.type);
+      }
+    });
+
     let added = true;
     while (added) {
       added = false;
@@ -87,6 +133,10 @@ export default class CacaoImporter {
           if (this._playbookHandler.getPreviousSteps(stepId, playbook).length != 0) {
             continue;
           }
+        }
+
+        if (this._processedSteps.has(stepId)) {
+          continue;
         }
 
         added = true;
@@ -155,10 +205,8 @@ export default class CacaoImporter {
       throw new Error('the type of a workflow step must be defined');
     }
 
-    const cacaoConstruct = CacaoFactory.getCacaoConstruct(
-      undefined,
-      getCacaoTypeFromModelType(step.type),
-    );
+    const constructType = this.getCachedConstructType(step.type);
+    const cacaoConstruct = this.getCachedConstruct(step.type, constructType);
 
     if (!cacaoConstruct) {
       throw new Error('impossible to get cacao construct from workflow step');
@@ -209,10 +257,8 @@ export default class CacaoImporter {
       throw new Error('every parameter should be defined');
     }
 
-    const cacaoConstruct = CacaoFactory.getCacaoConstruct(
-      undefined,
-      getCacaoTypeFromModelType(step.type),
-    );
+    const constructType = this.getCachedConstructType(step.type);
+    const cacaoConstruct = this.getCachedConstruct(step.type, constructType);
     const source = this._elementRegistry.get(previousStepId) as ShapeLike;
 
     if (!cacaoConstruct || !source) {

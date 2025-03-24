@@ -707,10 +707,10 @@ export default class PlaybookHandler {
 	}
 
 	/**
-	 * this method update the extension of the concerned step using the provided element.
-	 * if the provided element is a Connection , the method will update the outgoing connections of the step coordinates extension.
-	 * if the provided element is a Shape , the method will update the position and size of the step coordiantes extension.
-	 * @param element
+	 * This method updates the position of the provided workflow step or its outgoing connections.
+	 * If element = Connection, it will update the outgoing connections of the step coordinates extension.
+	 * If element = Shape, it will update the position and size of the step coordiantes extension.
+	 * @param element - The element to update.
 	 */
 	updateCoordinatesExtension(element: Shape | Connection) {
 		if (element.waypoints) {
@@ -821,6 +821,10 @@ export default class PlaybookHandler {
 		}
 	}
 
+	/**
+	 * This method removes the coordinates extension from the provided workflow step or its outgoing connections.
+	 * @param element - The element to remove the coordinates extension from.
+	 */
 	removeCoordinatesExtension(element: Shape | Connection) {
 		if (element.waypoints) {
 			//is Connection
@@ -853,6 +857,11 @@ export default class PlaybookHandler {
 		}
 	}
 
+	/**
+	 * This method retrieves the coordinates extension from the provided workflow step.
+	 * @param stepId - The ID of the workflow step to retrieve the coordinates extension from.
+	 * @returns The coordinates extension or undefined if it does not exist.
+	 */
 	getCoordinatesExtension(stepId: Identifier): CoordinatesExtension | undefined {
 		const workflowstep = this.playbook.workflow[stepId];
 		if (workflowstep === undefined) {
