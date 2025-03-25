@@ -49,6 +49,9 @@ export default class PlaybookHandler {
 	private _integrationLog: IntegrationLog;
 	static $inject: string[];
 
+	// Simple coordinates cache
+	private static _coordinatesCache: Record<string, CoordinatesExtension> = {};
+
 	constructor(eventBus: EventBus, playbook: Playbook, executionStatus: ExecutionStatus, elementRegistry: ElementRegistry) {
 		this._eventBus = eventBus;
 		this._playbook = playbook;
@@ -62,6 +65,7 @@ export default class PlaybookHandler {
 
 		eventBus.on('diagram.clear', 1, () => {
 			this._playbook = this.newPlaybook();
+			this.clearCoordinatesCache(); // Clear cache when diagram is cleared
 			this._eventBus.fire('playbook.changed', undefined);
 		});
 		eventBus.on('editor.loaded', () => {
@@ -858,25 +862,28 @@ export default class PlaybookHandler {
 	}
 
 	/**
-	 * This method retrieves the coordinates extension from the provided workflow step.
-	 * @param stepId - The ID of the workflow step to retrieve the coordinates extension from.
-	 * @returns The coordinates extension or undefined if it does not exist.
+	 * Get coordinates extension for a step, with caching
+	 * @param stepId The ID of the workflow step
+	 * @returns The coordinates extension or undefined
 	 */
-	getCoordinatesExtension(stepId: Identifier): CoordinatesExtension | undefined {
+	getCoordinatesExtension(stepId: string): CoordinatesExtension | undefined {
+		// Return from cache if available
+		if (PlaybookHandler._coordinatesCache[stepId]) {
+			return PlaybookHandler._coordinatesCache[stepId];
+		}
+
 		const workflowstep = this.playbook.workflow[stepId];
-		if (workflowstep === undefined) {
-			throw Error('the shape does not correspond to any workflow step');
-		}
-		if (workflowstep.step_extensions === undefined) {
+		if (!workflowstep || !workflowstep.step_extensions) {
 			return undefined;
 		}
-		if (
-			workflowstep.step_extensions[CoordinatesExtensionIdentifier] === undefined &&
-			this.playbook.extension_definitions[CoordinatesExtensionIdentifier] !== undefined
-		) {
-			return undefined;
+
+		const extension = workflowstep.step_extensions[CoordinatesExtensionIdentifier];
+		if (extension) {
+			// Cache the result
+			PlaybookHandler._coordinatesCache[stepId] = extension;
 		}
-		return workflowstep.step_extensions[CoordinatesExtensionIdentifier];
+
+		return extension;
 	}
 
 	/**
@@ -904,6 +911,14 @@ export default class PlaybookHandler {
 	 */
 	getIntegrationLog(): IntegrationLog {
 		return this._integrationLog;
+	}
+
+	/**
+	 * Clear the coordinates cache
+	 * Should be called when loading a new playbook or when coordinates are updated
+	 */
+	clearCoordinatesCache(): void {
+		PlaybookHandler._coordinatesCache = {};
 	}
 }
 

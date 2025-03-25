@@ -12,14 +12,17 @@ import CacaoModeling from '../modeling/CacaoModeling';
 import ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
 import CacaoUtils from '../../core/CacaoUtils';
 import PlaybookHandler from '../../model/PlaybookHandler';
-import { SwitchConditionStep, WorkflowStep } from 'lib/cacao2-js';
-import { CoordinatesExtension } from '../../model/coordinates-extension/CoordinatesExtension';
+import { SwitchConditionStep } from 'lib/cacao2-js';
 import { CacaoConnectionType } from 'src/diagram/elements/connections/CacaoBaseConnection';
 import { ConnectionExtension } from '../../model/coordinates-extension/ConnectionExtension';
 import { CasesConnectionExtension } from '../../model/coordinates-extension/CasesConnectionExtension';
 import { NextStepsConnectionExtension } from '../../model/coordinates-extension/NextStepsConnectionExtension';
+
+// Define valid connection types
+type ValidConnectionTypes = 'cases' | 'next-steps' | 'on-completion' | 'on-success' | 'on-failure' | 'on-true' | 'on-false';
+
 /**
- * This class is a module
+ * This class is a module for auto-placing shapes with optimized coordinate caching
  * - module's entry points:
  *    - event("autoPlace")
  * - goal:
@@ -29,10 +32,15 @@ export default class CacaoAutoPlace extends AutoPlace {
   _eventBus: EventBus;
   _modeling: CacaoModeling;
 
-  private HORIZONTAL_MARGIN_BETWEEN_SHAPES = 130;
-  private VERTICAL_MARGIN_BETWEEN_SHAPES = 200;
+  private readonly HORIZONTAL_MARGIN_BETWEEN_SHAPES = 130;
+  private readonly VERTICAL_MARGIN_BETWEEN_SHAPES = 200;
   private _elementRegistry: ElementRegistry;
   private _playbookHandler: PlaybookHandler;
+
+  // Local instance caches
+  private _waypointsCache: Map<string, Point[]>;
+  private _boundsCache: Map<string, Rect>;
+  private _positionCache: Map<string, Point>;
 
   constructor(
     eventBus: EventBus,
@@ -46,62 +54,58 @@ export default class CacaoAutoPlace extends AutoPlace {
     this._modeling = modeling;
     this._elementRegistry = elementRegistry;
     this._playbookHandler = playbookHandler;
+
+    // Initialize caches
+    this._waypointsCache = new Map();
+    this._boundsCache = new Map();
+    this._positionCache = new Map();
+
     this.bindEvents();
+
+    // Clear caches when playbook changes
+    this._eventBus.on(['playbook.loaded', 'elements.changed'], () => {
+      this.clearAllCaches();
+    });
   }
 
-  bindEvents() {
-    let self = this;
-    this._eventBus.on('autoPlace', function (event: any) {
-      let shape = event.shape;
-      let source = event.source;
+  private clearAllCaches(): void {
+    this._waypointsCache.clear();
+    this._boundsCache.clear();
+    this._positionCache.clear();
+  }
 
-      return self.getNextShapePosition(source, shape);
+  bindEvents(): void {
+    this._eventBus.on('autoPlace', (event: any) => {
+      const { shape, source } = event;
+      return this.getNextShapePosition(source, shape);
     });
   }
 
   /**
    * this method handles the autoPlace
-   *  It creates the new shapes with a calculated position. This position will come form the extension if it exist
-   *  It connect the two shapes with the provided connectionType
-   * @param source the source of the new connection
-   * @param shape this new shape, the target of the new connection
-   * @param connectionType the type of the new connection
-   * @returns the newly created shape
+   * It creates the new shapes with a calculated position. This position will come form the extension if it exist
+   * It connect the two shapes with the provided connectionType
    */
   appendShape(
     source: ShapeLike,
     shape: ShapeLike,
     connection: Partial<Connection>,
   ): ShapeLike {
-    let initialPosition;
+    let initialPosition: Point | undefined;
 
-    try {
-      let workflowStep = this._playbookHandler.playbook.workflow[shape?.id];
-      if (workflowStep) {
-        let coordinatesExtension =
-          this._playbookHandler.getCoordinatesExtension(shape.id);
-        if (
-          coordinatesExtension &&
-          coordinatesExtension.x &&
-          coordinatesExtension.y
-        ) {
-          initialPosition = {
-            x: coordinatesExtension.x,
-            y: coordinatesExtension.y,
-          };
-        }
-      }
-    } catch (_) {}
-
-    if (initialPosition == undefined) {
-      // Get the calculated position
-      initialPosition = this.getNextShapePosition(
-        source as Shape,
-        shape as Shape,
-      );
+    const coordinatesExtension = this._playbookHandler.getCoordinatesExtension(shape.id);
+    if (coordinatesExtension?.x && coordinatesExtension?.y) {
+      initialPosition = {
+        x: coordinatesExtension.x,
+        y: coordinatesExtension.y,
+      };
     }
 
-    var newShape = this._modeling.appendShape(
+    if (!initialPosition) {
+      initialPosition = this.getNextShapePosition(source as Shape, shape as Shape);
+    }
+
+    const newShape = this._modeling.appendShape(
       source as any,
       shape,
       initialPosition,
@@ -113,121 +117,120 @@ export default class CacaoAutoPlace extends AutoPlace {
   }
 
   /**
-   * this method return a position available on the canvas for the provided shape. It will use the position stored in coordinates extension
-   * @returns
+   * this method return a position available on the canvas for the provided shape
    */
   getFirstShapePosition(shape: Shape): Point {
-    let initialPosition;
+    let initialPosition: Point | undefined;
 
-    try {
-      let workflowStep = this._playbookHandler.playbook.workflow[shape?.id];
-      if (workflowStep) {
-        let coordinatesExtension =
-          this._playbookHandler.getCoordinatesExtension(shape.id);
-        if (
-          coordinatesExtension &&
-          coordinatesExtension.x &&
-          coordinatesExtension.y
-        ) {
-          initialPosition = {
-            x: coordinatesExtension.x,
-            y: coordinatesExtension.y,
-          };
-        }
-      }
-    } catch (_) {}
+    const coordinatesExtension = this._playbookHandler.getCoordinatesExtension(shape.id);
+    if (coordinatesExtension?.x && coordinatesExtension?.y) {
+      initialPosition = {
+        x: coordinatesExtension.x,
+        y: coordinatesExtension.y,
+      };
+    }
 
-    if (initialPosition == undefined) {
+    if (!initialPosition) {
       initialPosition = {
         x: 300,
         y: window.screen.height / 2 - shape.height / 2,
       };
     }
 
-    let position = this.getValidShapePosition(shape, initialPosition);
-    return position;
+    return this.getValidShapePosition(shape, initialPosition);
   }
 
   /**
-   * this method try to get the coordinates stored in the coordinates extension, if it is not defined, it will return an empty array
-   * @param stepId
-   * @param nextStepId
-   * @param connectionType
-   * @returns
+   * Get connection waypoints from coordinates extension or cache
    */
   getConnectionWaypoints(
     stepId: string,
     nextStepId: string,
     connectionType: CacaoConnectionType,
   ): Point[] {
-    try {
-      let workflowStep = this._playbookHandler.playbook.workflow[stepId];
-      if (workflowStep == undefined) {
-        return [];
-      }
-      let coordinateExtension =
-        this._playbookHandler.getCoordinatesExtension(stepId);
-      if (!coordinateExtension) {
-        return [];
-      }
-
-      let convertInWaypoints = (
-        connectionExtension: ConnectionExtension,
-      ): Point[] => {
-        let waypoints: Point[] = [];
-        for (let index = 0; index < connectionExtension.x.length; index++) {
-          waypoints.push({
-            x: connectionExtension.x[index],
-            y: connectionExtension.y[index],
-          });
+    const cacheKey = `${stepId}_${nextStepId}_${connectionType}`;
+    
+    if (!this._waypointsCache.has(cacheKey)) {
+      try {
+        const workflowStep = this._playbookHandler.playbook.workflow[stepId];
+        if (!workflowStep) {
+          this._waypointsCache.set(cacheKey, []);
+          return [];
         }
-        return waypoints;
-      };
-      for (let connectionExtension of coordinateExtension.outgoing_connections) {
-        if (connectionExtension.type == connectionType) {
-          switch (connectionExtension.type as any) {
-            case 'cases':
-              let casesExt = connectionExtension as CasesConnectionExtension;
-              if (
-                (workflowStep as SwitchConditionStep)?.cases[casesExt.case] ==
-                nextStepId
-              ) {
-                return convertInWaypoints(connectionExtension);
+
+        const coordinateExtension = this._playbookHandler.getCoordinatesExtension(stepId);
+        if (!coordinateExtension) {
+          this._waypointsCache.set(cacheKey, []);
+          return [];
+        }
+
+        const convertInWaypoints = (connectionExtension: ConnectionExtension): Point[] => {
+          return connectionExtension.x.map((x, index) => ({
+            x,
+            y: connectionExtension.y[index],
+          }));
+        };
+
+        for (const connectionExtension of coordinateExtension.outgoing_connections) {
+          if (connectionExtension.type === connectionType) {
+            let waypoints: Point[] = [];
+            
+            const connType = connectionExtension.type as ValidConnectionTypes;
+            switch (connType) {
+              case 'cases': {
+                const casesExt = connectionExtension as CasesConnectionExtension;
+                if ((workflowStep as SwitchConditionStep)?.cases[casesExt.case] === nextStepId) {
+                  waypoints = convertInWaypoints(connectionExtension);
+                }
+                break;
               }
-              break;
-            case 'next-steps':
-              let parallelExt =
-                connectionExtension as NextStepsConnectionExtension;
-              if (parallelExt.next_step == nextStepId) {
-                return convertInWaypoints(connectionExtension);
+              case 'next-steps': {
+                const parallelExt = connectionExtension as NextStepsConnectionExtension;
+                if (parallelExt.next_step === nextStepId) {
+                  waypoints = convertInWaypoints(connectionExtension);
+                }
+                break;
               }
-              break;
-            default:
-              return convertInWaypoints(connectionExtension);
-              break;
+              default:
+                waypoints = convertInWaypoints(connectionExtension);
+                break;
+            }
+
+            if (waypoints.length > 0) {
+              this._waypointsCache.set(cacheKey, waypoints);
+              return waypoints;
+            }
           }
         }
-      }
-    } catch (_) {}
 
-    return [];
+        this._waypointsCache.set(cacheKey, []);
+      } catch (error) {
+        console.debug('Error getting connection waypoints:', error);
+        this._waypointsCache.set(cacheKey, []);
+      }
+    }
+
+    return this._waypointsCache.get(cacheKey) || [];
   }
 
   /**
-   * this method returns a valid position for the target element depending on the position of the source
-   * @param source
-   * @param target element to place
-   * @returns Point: the position
+   * Get next shape position with caching
    */
   private getNextShapePosition(source: Shape, target: Shape): Point {
-    let sourceTrbl = asTRBL(source);
+    const cacheKey = `${source.id}_${target.id}`;
+    
+    if (!this._positionCache.has(cacheKey)) {
+      const sourceTrbl = asTRBL(source);
+      const position = {
+        x: sourceTrbl.right + this.HORIZONTAL_MARGIN_BETWEEN_SHAPES,
+        y: sourceTrbl.top + source.height / 2 - target.height / 2,
+      };
 
-    var position = {
-      x: sourceTrbl.right + this.HORIZONTAL_MARGIN_BETWEEN_SHAPES,
-      y: sourceTrbl.top + source.height / 2 - target.height / 2,
-    };
+      const validPosition = this.getValidShapePosition(target, position);
+      this._positionCache.set(cacheKey, validPosition);
+    }
 
-    return this.getValidShapePosition(target, position);
+    return this._positionCache.get(cacheKey)!;
   }
 
   /**
@@ -237,7 +240,7 @@ export default class CacaoAutoPlace extends AutoPlace {
    * @returns
    */
   private getValidShapePosition(shape: Shape, position: Point): Point {
-    var nextPositionDirection = {
+    const nextPositionDirection = {
       y: this.VERTICAL_MARGIN_BETWEEN_SHAPES,
     };
 
@@ -254,24 +257,22 @@ export default class CacaoAutoPlace extends AutoPlace {
    * @param position
    * @returns True if the shape can be place ther, False otherwize
    */
-  private isPositionWithConflicts(shape: Shape, position: Point) {
-    var bounds = {
+  private isPositionWithConflicts(shape: Shape, position: Point): boolean {
+    const bounds = {
       x: position.x - shape.width / 2,
       y: position.y - shape.height / 2,
       width: shape.width,
       height: shape.height,
     };
 
-    let list = this._elementRegistry.getAll();
-    for (let element of list) {
+    const elements = this._elementRegistry.getAll();
+    return elements.some(element => {
       if (CacaoUtils.isConstructType(element.type)) {
-        let orientation = getOrientation(element as any, bounds, 10);
-        if (orientation === ('intersect' as any)) {
-          return true;
-        }
+        const orientation = getOrientation(element as any, bounds, 10) as string;
+        return orientation === 'intersect';
       }
-    }
-    return false;
+      return false;
+    });
   }
 
   /**
@@ -280,17 +281,22 @@ export default class CacaoAutoPlace extends AutoPlace {
    * @returns Rect: a bounds
    */
   private getHeritateBounds(element: ElementLike): Rect {
-    let bounds = {
+    if (this._boundsCache.has(element.id)) {
+      return this._boundsCache.get(element.id)!;
+    }
+
+    const bounds = {
       x: element.x - element.width / 2,
       y: element.y - element.height / 2,
       width: element.width,
       height: element.height,
     };
 
-    for (let connection of element.outgoing) {
-      let target = connection.target;
+    for (const connection of element.outgoing) {
+      const target = connection.target;
       if (target && CacaoUtils.isConstructType(target.type)) {
-        let childBounds = this.getHeritateBounds(target);
+        const childBounds = this.getHeritateBounds(target);
+        
         if (childBounds.x < bounds.x) {
           bounds.width = bounds.x - childBounds.x + bounds.width;
           bounds.x = childBounds.x;
@@ -306,6 +312,8 @@ export default class CacaoAutoPlace extends AutoPlace {
         }
       }
     }
+
+    this._boundsCache.set(element.id, bounds);
     return bounds;
   }
 }
