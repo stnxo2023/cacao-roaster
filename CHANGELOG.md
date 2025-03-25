@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] - 2025-03-12
+## [1.3.0] - 2025-03-25
 
 ### Added
 
@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reduced time between execution status checks
 - Updated execution status model initialization and handling
 - Merged all export options into a dropdown menu
+- Improved playbook loading performance x2
+- Improved Dockerfile for smaller and more secure image
 
 ### Removed
 
