@@ -1,7 +1,9 @@
-import CacaoBaseConnection, {
+import type CacaoBaseConnection from '../../elements/connections/CacaoBaseConnection';
+import {
   CacaoConnectionType,
 } from '../../elements/connections/CacaoBaseConnection';
-import CacaoBaseConstruct, {
+import type CacaoBaseConstruct from '../../elements/constructs/CacaoBaseConstruct';
+import {
   CacaoConstructType,
 } from '../../elements/constructs/CacaoBaseConstruct';
 import CacaoActionConstruct from '../../elements/constructs/implementations/CacaoActionConstruct';
@@ -9,7 +11,7 @@ import CacaoEndConstruct from '../../elements/constructs/implementations/CacaoEn
 import CacaoStartConstruct from '../../elements/constructs/implementations/CacaoStartConstruct';
 import CacaoSwitchConditionConstruct from '../../elements/constructs/implementations/CacaoSwitchConditionConstruct';
 import CacaoUtils from '../core/CacaoUtils';
-import {
+import type {
   Shape,
   ShapeLike,
   Element,
@@ -32,6 +34,7 @@ import CacaoOnIfTrueConditionConnection from '../../elements/connections/impleme
 /**
  * This class provide static methods to get cacao element using the type/shape/connection
  */
+
 export default abstract class CacaoFactory {
   /**
    * this method instanciate a CacaoConstruct depending its type/Shape
@@ -77,9 +80,9 @@ export default abstract class CacaoFactory {
   static getCacaoConnectionList(
     connectionList: (Connection | ConnectionLike | Element | undefined)[],
   ): CacaoBaseConnection[] {
-    let list: CacaoBaseConnection[] = [];
-    for (let connection of connectionList) {
-      let cacaoConnection = CacaoFactory.getCacaoConnection(connection);
+    const list: CacaoBaseConnection[] = [];
+    for (const connection of connectionList) {
+      const cacaoConnection = CacaoFactory.getCacaoConnection(connection);
       if (cacaoConnection) {
         list.push(cacaoConnection);
       }

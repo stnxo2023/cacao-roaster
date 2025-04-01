@@ -66,10 +66,15 @@ import jsonSchemaOauth2 from '../../../../lib/cacao-json-schemas/schemas/authent
 import jsonSchemaUserAuth from '../../../../lib/cacao-json-schemas/schemas/authentication-info/user-auth.json';
 
 // Execution status JSON schema import
-import jsonSchemaStatusElement from '../../../../lib/workflow-status/schema/execution-status.json';
+import jsonSchemaExecutionStatus from '../../../../lib/workflow-status/schema/execution-status.json';
+import jsonSchemaWorkflowStatus from '../../../../lib/workflow-status/schema/workflow-status.json';
 
 // Coordinate extension defitnition JSON schemas import
 import jsonCoordinatesExtensionDefinition from '../../../../lib/cacao-coordinates-extension/extension-definition/extension-definition--418ee24c-9cb1-46d9-afa5-309e01aabc7f.json';
+
+// Soarca JSON schema imports
+import jsonSchemaSoarcaSsh from '../../../../lib/cacao-json-schemas/schemas/agent-target/soarca-ssh.json';
+import jsonSchemaSoarcaHttpApi from '../../../../lib/cacao-json-schemas/schemas/agent-target/soarca-http-api.json';
 
 /* Imports of types from CACAO-js library */
 
@@ -183,7 +188,8 @@ export const schemaDictWithoutAgentTarget: any = {
   'switch-condition': jsonSchemaSwitchCondition,
   'while-condition': jsonSchemaWhileCondition,
   'workflow-step': jsonSchemaWorkflowStep,
-  execution_status: jsonSchemaStatusElement,
+  'execution-status': jsonSchemaExecutionStatus,
+  'workflow-status': jsonSchemaWorkflowStatus,
   'authentication-info': jsonSchemaAuthenticationInfo,
   'http-basic': jsonSchemaHttpBasic,
   oauth2: jsonSchemaOauth2,
@@ -241,11 +247,14 @@ export const schemaDictWithoutCommands: any = {
   'switch-condition': jsonSchemaSwitchCondition,
   'while-condition': jsonSchemaWhileCondition,
   'workflow-step': jsonSchemaWorkflowStep,
-  execution_status: jsonSchemaStatusElement,
+  'execution-status': jsonSchemaExecutionStatus,
+  'workflow-status': jsonSchemaWorkflowStatus,
   'authentication-info': jsonSchemaAuthenticationInfo,
   'http-basic': jsonSchemaHttpBasic,
   oauth2: jsonSchemaOauth2,
   'user-auth': jsonSchemaUserAuth,
+  'soarca-ssh': jsonSchemaSoarcaSsh,
+  'soarca-http-api': jsonSchemaSoarcaHttpApi,
 };
 
 export const classDictWithoutAgentTarget: any = {
@@ -427,7 +436,7 @@ export const commonTypeDict: { [key: string]: string } = {
   'user-auth': 'authentication-info',
 };
 
-export const addressTypes: string[] = ['ipv4', 'ipv6', 'l2mac', 'url', 'vlan'];
+export const addressTypes: string[] = ['dname', 'ipv4', 'ipv6', 'l2mac', 'url', 'vlan'];
 
 export const tlpv2_levels: string[] = [
   'TLP:RED',
@@ -468,9 +477,10 @@ export const stepWithStatus: string[] = [
 ];
 
 export const executionStatusColor: any = {
-  successfully_completed: 'rgb(187 252 209)',
+  successfully_executed: 'rgb(187 252 209)',
   failed: 'rgb(255 175 175)',
   ongoing: 'rgb(160 209 255)',
+  await_user_input: 'rgb(255 165 0)',
   server_side_error: 'rgb(255 175 175)',
   client_side_error: 'rgb(255 175 175)',
   timeout_error: 'rgb(255 175 175)',
@@ -478,9 +488,10 @@ export const executionStatusColor: any = {
 };
 
 export const executionStatusColorStrong: any = {
-  successfully_completed: '#008127',
+  successfully_executed: 'rgb(0 129 39)',
   failed: 'rgb(180 40 41)',
   ongoing: 'rgb(9 84 109)',
+  await_user_input: 'rgb(255 140 0)',
   server_side_error: 'rgb(180 40 41)',
   client_side_error: 'rgb(180 40 41)',
   timeout_error: 'rgb(180 40 41)',
@@ -488,9 +499,10 @@ export const executionStatusColorStrong: any = {
 };
 
 export const executionStatusColorLight: any = {
-  successfully_completed: 'rgb(225 255 235)',
+  successfully_executed: 'rgb(225 255 235)',
   failed: 'rgb(255 229 229)',
   ongoing: 'rgb(221 235 248)',
+  await_user_input: 'rgb(255 200 100)',
   server_side_error: 'rgb(255 229 229)',
   client_side_error: 'rgb(255 229 229)',
   timeout_error: 'rgb(255 229 229)',
@@ -550,16 +562,17 @@ function getType(schema: Schema, schemaDict: Record<string, Schema>): string | o
 
   switch (schema.type) {
     case 'string':
-      if (schema.enum && schema.enum.length == 1) {
+      if (schema.enum && schema.enum.length === 1) {
         return schema.enum[0];
       }
+      break;
     case 'number':
     case 'boolean':
     case 'integer':
       return schema.type; // For basic types
     case 'array':
       if (schema.items) {
-        return getType(schema.items, schemaDict) + '[]';
+        return `${getType(schema.items, schemaDict)}[]`;
       }
       break;
     case 'object':
@@ -593,7 +606,7 @@ function getType(schema: Schema, schemaDict: Record<string, Schema>): string | o
 /**
  * Gets the description of the property.
  */
-function getDescription(schema: Schema, schemaDict: Record<string, Schema>) {
+function getDescription(schema: Schema) {
   if (schema.description) {
     return schema.description;
   }
@@ -661,7 +674,7 @@ export function extractSchemaTypes(
       dictionary.properties[propertyName] = getType(propertySchema, schemaDict);
     });
     Object.entries(schema.properties).forEach(([propertyName, propertySchema]) => {
-      dictionary.descriptions[propertyName] = getDescription(propertySchema, schemaDict);
+      dictionary.descriptions[propertyName] = getDescription(propertySchema);
     });
   }
 
@@ -693,7 +706,7 @@ export function extractSchemaTypes(
           dictionary.properties[propertyName] = getType(propertySchema, schemaDict);
         });
         Object.entries(subSchema.properties).forEach(([propertyName, propertySchema]) => {
-          dictionary.descriptions[propertyName] = getDescription(propertySchema, schemaDict);
+          dictionary.descriptions[propertyName] = getDescription(propertySchema);
         });
       }
     });

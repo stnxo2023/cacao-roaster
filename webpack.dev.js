@@ -1,5 +1,5 @@
 // webpack.dev.js
-const webpackCommon = require('./webpack.common');
+const webpackCommon = require('./webpack.common.cjs');
 const path = require('path');
 
 module.exports = {

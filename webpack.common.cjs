@@ -3,6 +3,11 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const webpack = require('webpack');
+const dotenv = require('dotenv').config({ path: __dirname + '/.env' });
+const vmBrowserify = require.resolve('vm-browserify');
+const bufferPolyfill = require.resolve('buffer/');
+const streamBrowserify = require.resolve('stream-browserify');
+const cryptoBrowserify = require.resolve('crypto-browserify');
 
 module.exports = {
   entry: path.resolve(__dirname, './src/index.ts'),
@@ -20,11 +25,13 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
+    extensions: ['.ts', '.js'],
     fallback: {
-      crypto: require.resolve('crypto-browserify'),
-      stream: require.resolve('stream-browserify'),
-      buffer: require.resolve('buffer'),
+      "vm": vmBrowserify,
+      "buffer": bufferPolyfill,
+      "stream": streamBrowserify,
+      "crypto": cryptoBrowserify,
+      "process": require.resolve("process/browser")
     },
   },
   output: {
@@ -32,8 +39,12 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
   },
   plugins: [
+    new webpack.DefinePlugin({
+      'process.env': JSON.stringify(dotenv.parsed),
+    }),
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],
+      process: 'process/browser',
     }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({

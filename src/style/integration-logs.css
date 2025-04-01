@@ -1,0 +1,236 @@
+/* ---------- Minimized Version Mode ------------- */
+
+.integration-logs_minimized {
+    display: flex;
+    position: fixed;
+    bottom: 5px;
+    right: 5px;
+    padding: 5px;
+    font-size: 12px;
+    color: #000000;
+    font-weight: 500;
+    font-family: Poppins;
+    letter-spacing: 0.5px;
+    border: solid 1px rgb(185, 188, 197);
+    border-radius: 5px;
+
+    background-color: #ddf8fd;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #c4f8fd;
+    }
+
+    &.move {
+        right: 360px !important;
+    }
+
+    .icon {
+        height: 15px;
+        width: 15px;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-image: url('../assets/icons/expand.svg');
+        transform: rotate(-180deg);
+        background-size: 25px 25px;
+        margin-left: 4px;
+        transition-duration: 200ms;
+
+        &.switcher {
+            transition-duration: 200ms;
+            transform: rotate(0deg);
+        }
+    }
+
+    .message {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-left: 10px;
+    }
+}
+
+/* ---------- Expanded Version Mode ------------- */
+.integration-logs_expanded {
+    display: block;
+    position: fixed;
+    bottom: 40px;
+    right: 5px;
+    max-height: 70vh;
+    width: 500px;
+    overflow-y: auto;
+    border: 1px solid rgb(185, 188, 197);
+    border-radius: 5px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+
+    &.preload {
+        animation-duration: 0s !important;
+        -webkit-animation-duration: 0s !important;
+        transition: background-color 0s, opacity 0s, color 0s, width 0s, height 0s, padding 0s, margin 0s !important;
+    }
+
+    &.show {
+        animation: smooth-appear 0.3s ease-in-out forwards;
+    }
+
+    &.hide {
+        animation: smooth-disappear 0.3s ease-in-out forwards;
+    }
+
+    &.move {
+        right: 360px !important;
+    }
+    .header {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        border-bottom: 1px solid rgb(185, 188, 197);
+        position: fixed;
+        width: 478px;
+        background-color: #d4d4d4;
+        color: #000000;
+        border-radius: 5px;
+        cursor: pointer;
+
+        &:hover {
+            background-color: #c4c4c4;
+        }
+
+        .icon {
+            height: 15px;
+            width: 15px;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-image: url('../assets/icons/expand.svg');
+            transform: rotate(0deg);
+            background-size: 25px 25px;
+            margin-left: 4px;
+            transition-duration: 200ms;
+            /* &.switcher {
+                transition-duration: 200ms;
+                transform: rotate(-180deg);
+            } */
+        }
+
+        .title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-left: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.1ch;
+        }
+    }
+    /* Wrapper that contains all messages */
+    .all-logs-container {
+        display: flex;
+        flex-direction: column;
+        padding: 44px 20px 10px 20px;
+        max-width: 100%;
+        height: inherit;
+        background-color: white;
+
+        .no-message-info {
+            font-size: 16px;
+            font-weight: 500;
+            color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+    }
+}
+
+/* General container for the log item */
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 80%;
+    margin: 8px 0;
+    border-radius: 20px;
+    font-family: Arial, sans-serif;
+    word-wrap: break-word;
+
+    /* User message styling (blue, right-aligned) */
+    &:not(.system-log) {
+        align-self: flex-end;
+    }
+    /* System message styling (gray, left-aligned) */
+    &.system-log {
+        color: black;
+        align-self: flex-start;
+
+        .message-content {
+            background-color: #e5e5ea;
+            color: black;
+        }
+    }
+
+    .metadata {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+
+        .timestamp {
+            font-size: 12px;
+            font-weight: 300;
+            margin: 0 6px 0 8px;
+            padding: 0px;
+        }
+    }
+
+    /* User or System type */
+    .type {
+        font-weight: bold;
+        margin: 0 0 0 6px;
+        padding: 0px;
+    }
+
+    .message-content {
+        background-color: #007aff;
+        color: white;
+        border-radius: 10px;
+        padding: 8px 12px;
+
+        .text {
+            font-size: 12px;
+            font-weight: 300;
+        }
+        .title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+    }
+}
+
+@keyframes smooth-appear {
+    from {
+        width: 300px;
+        height: 0px;
+        opacity: 0;
+        z-index: -1;
+    }
+    to {
+        width: 500px;
+        height: 70vh;
+        opacity: 1;
+        z-index: 1;
+    }
+}
+@keyframes smooth-disappear {
+    from {
+        width: 500px;
+        height: 70vh;
+        opacity: 1;
+        z-index: 1;
+    }
+    to {
+        width: 300px;
+        height: 0vh;
+        opacity: 0;
+        z-index: -1;
+    }
+}

@@ -7,7 +7,7 @@ import './style/main.css';
 import MultiInstanceApplication from './app/multi-instance/MultiInstanceApplication';
 
 window.addEventListener('load', () => {
-  let container = document.getElementById('container');
+  const container = document.getElementById('container');
   if (!container) {
     return;
   }

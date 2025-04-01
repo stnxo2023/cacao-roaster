@@ -1,4 +1,3 @@
-import sidePanel from '.';
 import { PanelElement } from './PanelElement';
 
 /**
@@ -18,9 +17,7 @@ export class PanelButton extends PanelElement {
       event.stopPropagation();
     });
     this._propertyName = buttonName;
-    this._linesContainer.classList.add(
-      'property__status__element--button--textcontainer--inside',
-    );
+    this._linesContainer.classList.add('property__status__element--button--textcontainer--inside');
   }
 
   /**
@@ -35,13 +32,13 @@ export class PanelButton extends PanelElement {
     this._container.appendChild(this._button);
   }
 
-  addLine(textLine: string, className: string = '') {
+  addLine(textLine: string, className = '') {
     this._button.textContent = '';
-    let span = document.createElement('span');
+    const span = document.createElement('span');
     if (!className.includes('title')) {
-      let title = textLine.split(' ')[0];
-      let text = textLine.replace(title, '');
-      span.innerHTML = '<b>' + title + '</b>' + text;
+      const title = textLine.split(' ')[0];
+      const text = textLine.replace(title, '');
+      span.innerHTML = `<b>${title}</b>${text}`;
     } else {
       span.textContent = textLine;
     }

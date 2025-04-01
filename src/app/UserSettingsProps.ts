@@ -1,153 +1,209 @@
-import { Identifier } from 'lib/cacao2-js/src/data-types/Identifier';
+import type { Identifier } from 'lib/cacao2-js/src/data-types/Identifier';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class UserSettingsProps {
-  static instance: UserSettingsProps = new UserSettingsProps();
+	static instance: UserSettingsProps = new UserSettingsProps();
 
-  identifier: Identifier = 'identity--' + uuidv4();
-  private identifierPattern =
-    '^[a-z][a-z0-9-]+[a-z0-9]--[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$';
-  secretKey: string = '';
-  publicKey: string = '';
+	identifier: Identifier = this.getOrCreateUserIdentifier;
+	private identifierPattern =
+		'^[a-z][a-z0-9-]+[a-z0-9]--[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$';
+	privateKey = '';
+	publicKey = '';
 
-  get isFulfil(): boolean {
-    return this.identifier != '' && this.secretKey != '' && this.publicKey != '';
-  }
+	get isSigningInfoFilledIn(): boolean {
+		return this.isIdValid && this.isKeyPairValid;
+	}
 
-  showDialog() {
-    let dialog = document.createElement('dialog') as HTMLDialogElement;
-    dialog.className = 'dialog';
-    dialog.addEventListener('keydown', function (event) {
-      if (event.code.toLowerCase() === 'escape') {
-        dialog.close();
-        dialog.remove();
-        document.body.classList.remove('blurred');
-      }
-    });
-    document.body.appendChild(dialog);
+	get isIdValid(): boolean {
+		return this.passRegex(this.identifier);
+	}
 
-    dialog.appendChild(getTitleHTMLElement());
+	get isKeyPairValid(): boolean {
+		return this.privateKey.includes('-----BEGIN ') && this.publicKey.includes('-----BEGIN ');
+	}
 
-    let identifierContainer = getPropertyHTMLElement(
-      'User identifier',
-      'identifier',
-      'input',
-      this.identifier,
-    );
-    dialog.appendChild(identifierContainer);
-    let secretKeyContainer = getPropertyHTMLElement(
-      'Secret key (beta - for experimental purposes only)',
-      'secretKey',
-      'textarea',
-      this.secretKey,
-    );
-    dialog.appendChild(secretKeyContainer);
-    let publicKeyContainer = getPropertyHTMLElement(
-      'Public key (beta - for experimental purposes only)',
-      'publicKey',
-      'textarea',
-      this.publicKey,
-    );
-    dialog.appendChild(publicKeyContainer);
+	get getOrCreateUserIdentifier(): Identifier {
+		return (process.env.USER_IDENTIFIER as Identifier) || `identity--${uuidv4()}`;
+	}
 
-    let buttonContainer = document.createElement('div');
-    buttonContainer.className = 'dialog__buttonList';
+	showDialog() {
+		const dialog = document.createElement('dialog') as HTMLDialogElement;
+		dialog.className = 'dialog';
+		dialog.addEventListener('keydown', event => {
+			if (event.code.toLowerCase() === 'escape') {
+				dialog.close();
+				dialog.remove();
+				document.body.classList.remove('blurred');
+			}
+		});
+		document.body.appendChild(dialog);
 
-    let confirm = getButtonHTMLElement('Confirm', true);
-    let cancel = getButtonHTMLElement('Cancel', false);
+		dialog.appendChild(this.getTitleHTMLElement());
 
-    buttonContainer.appendChild(cancel);
-    buttonContainer.appendChild(confirm);
-    dialog.appendChild(buttonContainer);
+		const identifierContainer = this.getPropertyHTMLElement(
+			'User identifier',
+			'identifier',
+			'input',
+			this.identifier,
+		);
+		dialog.appendChild(identifierContainer);
+		const privateKeyContainer = this.getPropertyHTMLElement(
+			'Private key (beta - for experimental purposes only)',
+			'privateKey',
+			'textarea',
+			this.privateKey,
+		);
+		dialog.appendChild(this.demoKeyPairDiv());
+		dialog.appendChild(privateKeyContainer);
+		const publicKeyContainer = this.getPropertyHTMLElement(
+			'Public key (beta - for experimental purposes only)',
+			'publicKey',
+			'textarea',
+			this.publicKey,
+		);
+		dialog.appendChild(publicKeyContainer);
 
-    document.body.classList.add('blurred');
-    dialog.showModal();
+		const buttonContainer = document.createElement('div');
+		buttonContainer.className = 'dialog__buttonList';
 
-    return new Promise<boolean>(resolve => {
-      confirm.addEventListener('click', () => {
-        let identifier = identifierContainer.getElementsByClassName('property__input')[0] as
-          | HTMLInputElement
-          | HTMLTextAreaElement;
-        let publicKey = publicKeyContainer.getElementsByClassName('property__input')[0] as
-          | HTMLInputElement
-          | HTMLTextAreaElement;
-        let secretKey = secretKeyContainer.getElementsByClassName('property__input')[0] as
-          | HTMLInputElement
-          | HTMLTextAreaElement;
+		const confirm = this.getButtonHTMLElement('Confirm', true);
+		const cancel = this.getButtonHTMLElement('Cancel', false);
 
-        let correct = true;
-        if (!passRegex(identifier.value, this.identifierPattern)) {
-          correct = false;
-          identifier.classList.add('input--incorrect');
-        } else {
-          identifier.classList.remove('input--incorrect');
-        }
-        if (correct) {
-          this.identifier = identifier.value;
-          this.publicKey = publicKey.value;
-          this.secretKey = secretKey.value;
-          dialog.close();
-          dialog.remove();
-          document.body.classList.remove('blurred');
-          resolve(true);
-        }
-      });
+		buttonContainer.appendChild(cancel);
+		buttonContainer.appendChild(confirm);
+		dialog.appendChild(buttonContainer);
 
-      cancel.addEventListener('click', () => {
-        dialog.close();
-        dialog.remove();
-        document.body.classList.remove('blurred');
-        resolve(false);
-      });
-    });
-  }
-}
+		document.body.classList.add('blurred');
+		dialog.showModal();
 
-function passRegex(value: string, regex: string): boolean {
-  let reg = RegExp(regex);
-  return value == '' || reg.test(value);
-}
+		return new Promise<boolean>(resolve => {
+			confirm.addEventListener('click', () => {
+				const identifier = identifierContainer.getElementsByClassName(
+					'property__input',
+				)[0] as HTMLInputElement;
+				const publicKey = publicKeyContainer.getElementsByClassName(
+					'property__input',
+				)[0] as HTMLTextAreaElement;
+				const privateKey = privateKeyContainer.getElementsByClassName(
+					'property__input',
+				)[0] as HTMLTextAreaElement;
 
-function getTitleHTMLElement(): HTMLElement {
-  let titleDialog = document.createElement('div') as HTMLDivElement;
-  titleDialog.innerHTML = 'Settings';
-  titleDialog.className = 'dialog__title';
-  return titleDialog;
-}
+				let correct = true;
+				if (!this.passRegex(identifier.value)) {
+					correct = false;
+					identifier.classList.add('input--incorrect');
+				} else {
+					identifier.classList.remove('input--incorrect');
+				}
+				if (correct) {
+					this.identifier = identifier.value;
+					this.publicKey = publicKey.value;
+					this.privateKey = privateKey.value;
+					dialog.close();
+					dialog.remove();
+					document.body.classList.remove('blurred');
+					resolve(true);
+				}
+			});
 
-function getPropertyHTMLElement(
-  label: string,
-  id: string,
-  type: 'textarea' | 'input',
-  value: string = '',
-): HTMLElement {
-  let propertyContainer = document.createElement('div');
-  propertyContainer.className = 'dialog__property';
-  propertyContainer.id = id;
+			cancel.addEventListener('click', () => {
+				dialog.close();
+				dialog.remove();
+				document.body.classList.remove('blurred');
+				resolve(false);
+			});
+		});
+	}
 
-  let labelElement = document.createElement('div');
-  labelElement.innerHTML = label;
-  labelElement.className = 'property__label';
+	passRegex(value: string): boolean {
+		const reg = RegExp(this.identifierPattern);
+		return value === '' || reg.test(value);
+	}
 
-  let inputElement = document.createElement(type);
-  inputElement.className = 'property__input';
-  inputElement.value = value;
+	getTitleHTMLElement(): HTMLElement {
+		const titleDialog = document.createElement('div') as HTMLDivElement;
+		titleDialog.innerHTML = 'Settings';
+		titleDialog.className = 'dialog__title';
+		return titleDialog;
+	}
 
-  propertyContainer.appendChild(labelElement);
-  propertyContainer.appendChild(inputElement);
-  return propertyContainer;
-}
+	getPropertyHTMLElement(
+		label: string,
+		id: string,
+		type: 'textarea' | 'input',
+		value = '',
+	): HTMLElement {
+		const propertyContainer = document.createElement('div');
+		propertyContainer.className = 'dialog__property';
+		propertyContainer.id = id;
 
-function getButtonHTMLElement(label: string, isPrimary = true): HTMLElement {
-  let button = document.createElement('button');
-  button.className = 'dialog__button';
-  button.innerText = label;
+		const labelElement = document.createElement('div');
+		labelElement.innerHTML = label;
+		labelElement.className = 'property__label';
 
-  if (isPrimary) {
-    button.classList.add('button--primary');
-  } else {
-    button.classList.add('button--secondary');
-  }
+		const inputElement = document.createElement(type);
+		inputElement.className = 'property__input';
+		inputElement.id = `${id}-${type}`;
+		inputElement.value = value;
 
-  return button;
+		propertyContainer.appendChild(labelElement);
+		propertyContainer.appendChild(inputElement);
+		return propertyContainer;
+	}
+
+	getButtonHTMLElement(label: string, isPrimary = true): HTMLElement {
+		const button = document.createElement('button');
+		button.className = 'dialog__button';
+		button.innerText = label;
+
+		if (isPrimary) {
+			button.classList.add('button--primary');
+		} else {
+			button.classList.add('button--secondary');
+		}
+
+		return button;
+	}
+
+	loadDemoKeyPair() {
+		this.privateKey = process.env.PRIVATE_KEY || '';
+		this.publicKey = process.env.PUBLIC_KEY || '';
+	}
+
+	demoKeyPairDiv(): HTMLDivElement {
+		const useDemoKeysBtn = document.createElement('button');
+		useDemoKeysBtn.classList.add('dialog__button', 'button--secondary');
+		useDemoKeysBtn.innerText = 'Use demo keys';
+		useDemoKeysBtn.addEventListener('click', () => {
+			this.loadDemoKeyPair();
+			const privateKeyInput = document.getElementById(
+				'privateKey-textarea',
+			) as HTMLTextAreaElement;
+			const publicKeyInput = document.getElementById(
+				'publicKey-textarea',
+			) as HTMLTextAreaElement;
+			privateKeyInput.value = this.privateKey;
+			publicKeyInput.value = this.publicKey;
+		});
+
+		const clearDemoKeysBtn = document.createElement('button');
+		clearDemoKeysBtn.classList.add('dialog__button', 'button--secondary');
+		clearDemoKeysBtn.innerText = 'Clear Keys';
+		clearDemoKeysBtn.addEventListener('click', () => {
+			const privateKeyInput = document.getElementById(
+				'privateKey-textarea',
+			) as HTMLTextAreaElement;
+			const publicKeyInput = document.getElementById(
+				'publicKey-textarea',
+			) as HTMLTextAreaElement;
+			privateKeyInput.value = '';
+			publicKeyInput.value = '';
+		});
+
+		const buttonWrapper = document.createElement('div');
+		buttonWrapper.classList.add('keyPair__button-wrapper');
+		buttonWrapper.appendChild(useDemoKeysBtn);
+		buttonWrapper.appendChild(clearDemoKeysBtn);
+		return buttonWrapper;
+	}
 }

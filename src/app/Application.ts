@@ -26,7 +26,7 @@ export function newPlaybook(): Playbook {
     workflow_start: start_id,
     workflow: workflow,
   });
-  if (UserSettingsProps.instance.isFulfil) {
+  if (UserSettingsProps.instance.isIdValid) {
     playbook.created_by = UserSettingsProps.instance.identifier;
   }
   return playbook;
