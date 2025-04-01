@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] - 2025-03-25
+## [1.3.0] - 2025-04-01
 
 ### Added
 
@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated execution status model initialization and handling
 - Merged all export options into a dropdown menu
 - Improved playbook loading performance x2
-- Improved Dockerfile for smaller and more secure image
+- Improved Dockerfile for a smaller and more secure image
 
 ### Removed
 
@@ -43,12 +43,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed issues with execution-status.json file, including renaming properties and updating required properties.
+- Fixed issues with the execution-status.json file, including renaming properties and updating required properties.
 - Improved error handling and display in CacaoValidator.ts.
 - Fixed various bugs related to integration logs and playbook handling.
 - Fixed bug preventing creation and display of external references (#18)
 - Fixed ExecutionStatus issues: Variables showing as [Object object], commands_b64 display issues, automated_execution casting
-- Fixed status dots on visual nodes not changing color and added log clearing on new executions
+- Fixed status dots on visual nodes not changing color, and added log clearing on new executions
 - Fixed reactivity of revoke playbook tag (#21)
 - Fixed data marking definitions handling (#19)
 - Fixed playbook creator identifier population (#24, #25)
@@ -59,13 +59,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Subfolder for CACAO Playbook examples.
 - Support for importing CACAO Playbooks as text in both JSON and base64 encoded formats.
-- Support for the missing HTTP headers property. Used in e.g. OpenC2 and HTTP-API commands.
-- Exporting the CACAO playbooks as STIX 2.1 Course of Action object with the Playbook extension.
+- Support for the missing HTTP headers property. Used in e.g., OpenC2 and HTTP-API commands.
+- Exporting the CACAO playbooks as STIX 2.1 Course of Action objects with the Playbook extension.
 
 ### Changed
 
 - Adjusted the CSS so that the expandable lists and dictionaries don't cover other properties in the view.
-- Changed the input for 'related to' property in playbook metadata from list dropdown to string.
+- Changed the input for the 'related to' property in playbook metadata from a list dropdown to a string.
 
 ### Removed
 
