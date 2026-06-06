@@ -13,8 +13,8 @@ CACAO Roaster is a sub-project of the Open Cybersecurity Alliance Community (OCA
 If you use CACAO Roaster in your work, please cite it as:
 
 > Zych, M., Mavroeidis, V., & Open Cybersecurity Alliance Community. (2025).  
-> *CACAO Roaster* (Version 1.3.0) [Computer software].  
-> https://github.com/opencybersecurityalliance/cacao-roaster
+> *CACAO Roaster* (Version 1.3.0) [Computer software]. Zenodo.  
+> https://doi.org/10.5281/zenodo.20570338
 
 Citation metadata is also available in [`CITATION.cff`](CITATION.cff). On GitHub, you can use the **Cite this repository** button to export the citation in formats such as APA and BibTeX.
 
