@@ -1,0 +1,34 @@
+cff-version: "1.2.0"
+message: "If you use this software in your work, please cite it using the metadata from this file."
+type: software
+
+title: "CACAO Roaster"
+version: "1.3.0"
+date-released: "2025-04-01"
+license: "Apache-2.0"
+
+authors:
+  - family-names: "Zych"
+    given-names: "Mateusz"
+    alias: "mateusdz"
+  - family-names: "Mavroeidis"
+    given-names: "Vasileios"
+    alias: "Vasileios-Mavroeidis"
+  - name: "Open Cybersecurity Alliance Community"
+    alias: "OCA Community"
+
+repository-code: "https://github.com/opencybersecurityalliance/cacao-roaster"
+
+abstract: >
+  CACAO Roaster is a sub-project of the Open Cybersecurity Alliance Community
+  (OCA Community), maintained by Mateusz Zych and Vasileios Mavroeidis. It is a
+  web application for generating, parsing, validating, manipulating, and
+  visualizing CACAO v2.0 playbooks.
+
+keywords:
+  - "cybersecurity automation"
+  - "CACAO"
+  - "CACAO playbooks"
+  - "security playbooks"
+  - "OCA Community"
+  - "OASIS"
