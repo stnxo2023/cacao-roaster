@@ -1,21 +1,34 @@
 <img src="/artwork/CACAO-Roaster-logo.jpg" alt="CACAO Roaster logo" width="400"/>
 
+# CACAO Roaster
+
 [![pages-build-deployment](https://github.com/opencybersecurityalliance/cacao-roaster/actions/workflows/pages/pages-build-deployment/badge.svg?branch=gh-pages)](https://github.com/opencybersecurityalliance/cacao-roaster/actions/workflows/pages/pages-build-deployment)
 
-**Online Instance:** https://opencybersecurityalliance.github.io/cacao-roaster/
-# CACAO Roaster Sub-Project
+**Online instance:** https://opencybersecurityalliance.github.io/cacao-roaster/
 
-CACAO Roaster is a sub-project of the Open Cybersecurity Alliance. It is a web application for generating, parsing and validating, manipulating, and visualizing CACAO v2.0 playbooks.
+CACAO Roaster is a sub-project of the Open Cybersecurity Alliance Community (OCA Community). It is a web application for generating, parsing, validating, editing, and visualizing CACAO v2.0 playbooks.
 
-# Table of contents
+## Citation
 
-- [CACAO Roaster Sub-Project](#cacao-roaster-sub-project)
-- [Table of contents](#table-of-contents)
+If you use CACAO Roaster in your work, please cite it as:
+
+> Zych, M., Mavroeidis, V., & Open Cybersecurity Alliance Community. (2025).  
+> *CACAO Roaster* (Version 1.3.0) [Computer software].  
+> https://github.com/opencybersecurityalliance/cacao-roaster
+
+Citation metadata is also available in [`CITATION.cff`](CITATION.cff). On GitHub, you can use the **Cite this repository** button to export the citation in formats such as APA and BibTeX.
+
+## Table of Contents
+
+- [CACAO Roaster](#cacao-roaster)
+- [Citation](#citation)
 - [Introduction](#introduction)
   - [Project status](#project-status)
-  - [Integration with other existing OCA or OASIS projects](#integration-with-other-existing-oca-or-oasis-projects)
+  - [Integration with CACAO Orchestrator](#integration-with-cacao-orchestrator)
+  - [Integration with OCA Community and OASIS projects](#integration-with-oca-community-and-oasis-projects)
   - [Screenshots of the application](#screenshots-of-the-application)
 - [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Deployment](#deployment)
   - [Contributing](#contributing)
@@ -25,120 +38,133 @@ CACAO Roaster is a sub-project of the Open Cybersecurity Alliance. It is a web a
     - [Join us on Slack](#join-us-on-slack)
   - [License](#license)
 - [Governance](#governance)
-- [CLA \& Non-assert signatures required](#cla--non-assert-signatures-required)
+- [CLA and Non-assert signatures required](#cla-and-non-assert-signatures-required)
 
-# Introduction
+## Introduction
 
-As cyber systems become increasingly complex and cybersecurity threats become more prominent, defenders must prepare, coordinate, automate, document, and share their response methodologies to the extent possible. The CACAO standard was developed to satisfy the above requirements providing a common machine-readable framework and schema to document cybersecurity operations processes, including defensive tradecraft and tactics, techniques, and procedures.
+As cyber systems become increasingly complex and cybersecurity threats become more prominent, defenders must prepare, coordinate, automate, document, and share their response methodologies whenever possible. The CACAO standard was developed to address these requirements by providing a common, machine-readable framework and schema for documenting cybersecurity operations processes, including defensive tradecraft, tactics, techniques, and procedures.
 
-For wider adoption of the CACAO standard, it is crucial to support and simplify the playbook creation, modification, and understanding. **CACAO Roaster supports the aforementioned by providing a faster and easier way to create, manipulate, visualize and share CACAO playbooks in a “no-code” graphical manner.**
+To support wider adoption of the CACAO standard, it is important to simplify the creation, modification, and understanding of CACAO playbooks. **CACAO Roaster addresses this need by providing a faster and easier way to create, edit, visualize, and share CACAO playbooks through a no-code graphical interface.**
 
-The CACAO Roaster web application complies fully to the [CACAO v2 CS01](https://docs.oasis-open.org/cacao/security-playbooks/v2.0/security-playbooks-v2.0.pdf) specification.
+The CACAO Roaster web application fully complies with the [CACAO Security Playbooks v2.0 Committee Specification 01](https://docs.oasis-open.org/cacao/security-playbooks/v2.0/security-playbooks-v2.0.pdf).
 
-## Project status
+### Project status
 
-The CACAO Roaster is now in a stable version 1.3.0 and is under continuous maintenance.
-The maintenance team has an overview of open issues/working items on the GitHub issues page.
+CACAO Roaster is currently stable at version 1.3.0 and is under continuous maintenance.
+
+The maintenance team tracks open issues and work items on the GitHub issues page.
 
 ### Integration with CACAO Orchestrator
 
-CACAO Roaster includes a basic integration with the CACAO Orchesrtator/executor [SOARCA](https://github.com/COSSAS/SOARCA). 
-To use that integration, you need to have a running instance of SOARCA and configure the CACAO Roaster to use it, by setting the `SOARCA_URL` environment variable to the SOARCA instance URL or simply provide the SOARCA URL in the SOARCA integration window in the CACAO Roaster.
+CACAO Roaster includes a basic integration with the CACAO orchestrator/executor [SOARCA](https://github.com/COSSAS/SOARCA).
 
-Itegration with CACAO Executor - SOARCA.
-![Itegration with CACAO Executor - SOARCA.](/artwork/CACAO-Roaster-Integraion.png)
+To use this integration, you need a running instance of SOARCA. You can configure CACAO Roaster to use it by setting the `SOARCA_URL` environment variable to the SOARCA instance URL, or by providing the SOARCA URL directly in the SOARCA integration window in CACAO Roaster.
 
-## Integration with other existing OCA or OASIS projects
+Integration with the CACAO executor SOARCA.
 
-CACAO, STIX, OpenC2
+![Integration with the CACAO executor SOARCA.](/artwork/CACAO-Roaster-Integraion.png)
 
-## Screenshots of the application
+### Integration with OCA Community and OASIS projects
+
+CACAO Roaster is aligned with CACAO and can be used alongside related OCA Community and OASIS cybersecurity automation efforts, including STIX and OpenC2.
+
+### Screenshots of the application
 
 Start screen of the application.
-![Start screen of the application](/artwork/CACAO-Roaster-1.png)
+
+![Start screen of the application.](/artwork/CACAO-Roaster-1.png)
 
 Example of a playbook view.
+
 ![Example of a playbook view.](/artwork/CACAO-Roaster-2.png)
 
+## Getting Started
 
-# Getting Started
+These instructions will help you run CACAO Roaster locally for development purposes. See the deployment section for notes on running the project on a live system.
 
-These instructions will get you up and running with the project on your local machine for development purposes. See deployment for notes on how to deploy the project on a live system.
+### Prerequisites
 
-Prerequisites:
+- Node.js >= 20.5.0
+- npm >= 9.8.0
 
-* node >= 20.5.0
-* npm >= 9.8.0
+### Installation
 
-## Installation
+Install the project dependencies:
 
-```
+```bash
 npm i
 ```
 
-**Run the project locally (in development mode)**
+Run the project locally in development mode:
 
-```
+```bash
 npm run start
 ```
-The CACAO Roaster will run locally on: http://localhost:3000/
 
-**Building the project for production**
+CACAO Roaster will be available locally at:
 
+```text
+http://localhost:3000/
 ```
+
+Build the project for production:
+
+```bash
 npm run build
 ```
 
-## Deployment
+### Deployment
 
-Install serve service on hosting machine
+Install the `serve` package on the hosting machine:
 
-```
+```bash
 npm install serve
 ```
 
-Host production bundle
+Serve the production bundle:
 
-```
+```bash
 serve dist
 ```
 
-Or use [Docker](https://www.docker.com/) to spin up a fully functioning container
+Alternatively, use [Docker](https://www.docker.com/) to build and run the application in a container:
 
-```
+```bash
 docker build -t cacao-roaster .
 docker run -it -p 3000:3000 cacao-roaster
 ```
 
-## Contributing
+### Contributing
 
-Add a brief explanation of what kind of contributions you are looking for and what your requirements are for accepting them. Add a link to [CONTRIBUTING.md](/CONTRIBUTING.md) and a link to [CODE_OF_CONDUCT](link to your code_of_conduct.md file).
+Contributions are welcome. You can contribute by reporting issues, suggesting improvements, improving documentation, or submitting pull requests.
 
-## Maintainers
+Before contributing, please review the repository guidelines in [CONTRIBUTING.md](/CONTRIBUTING.md). Technical contributions must also satisfy the CLA and non-assert requirements described below.
 
-* Mateusz Zych: [https://github.com/mateusdz](https://github.com/mateusdz)
-* Vasileios Mavroeidis: [https://github.com/Vasileios-Mavroeidis](https://github.com/Vasileios-Mavroeidis)
+### Maintainers
 
-## Support
+- Mateusz Zych: [https://github.com/mateusdz](https://github.com/mateusdz)
+- Vasileios Mavroeidis: [https://github.com/Vasileios-Mavroeidis](https://github.com/Vasileios-Mavroeidis)
 
-Where can people ask for help: this can be any combination of an issue tracker, Slack, a chat room, an email address, etc.
+### Support
 
-### Sign up for our mailing list
+For support, questions, feature requests, or bug reports, please use the GitHub issues page or the community channels listed below.
 
-Stay up to date on meetings, announcements and other discussions with the [CACAO Roaster mailing list](https://lists.oasis-open-projects.org/g/oca-cacao-roaster). To subscribe, send an empty email to [oca-cacao-roaster+subscribe@lists.oasis-open-projects.org](mailto:oca-cacao-roaster+subscribe@lists.oasis-open-projects.org).
+#### Sign up for our mailing list
 
-### Join us on Slack
+Stay up to date on meetings, announcements, and other discussions with the [CACAO Roaster mailing list](https://lists.oasis-open-projects.org/g/oca-cacao-roaster). To subscribe, send an empty email to [oca-cacao-roaster+subscribe@lists.oasis-open-projects.org](mailto:oca-cacao-roaster+subscribe@lists.oasis-open-projects.org).
 
-CACAO Roaste has a Slack channel on the OCA Slack. [Join here](https://join.slack.com/t/open-cybersecurity/shared_invite/zt-1jsgt1053-oYsfBPXXChhbRO4JO5Xo1A) and say hi in #cacao-roaster.
+#### Join us on Slack
 
-## License
+CACAO Roaster has a Slack channel on the OCA Community Slack. [Join here](https://join.slack.com/t/open-cybersecurity/shared_invite/zt-1jsgt1053-oYsfBPXXChhbRO4JO5Xo1A) and say hi in `#cacao-roaster`.
 
-This project is licensed under the Apache 2.0 License - see the [LICENSE.md](LICENSE.md) file for details
+### License
 
-# Governance
+This project is licensed under the Apache 2.0 License. See the [LICENSE.md](LICENSE.md) file for details.
 
-[Open Project name] operates under the terms of the [Open Project Rules](https://www.oasis-open.org/policies-guidelines/open-projects-process) and the applicable license(s) specified in [LICENSE.md](LICENSE.md). Further details can be found in [GOVERNANCE.md](GOVERNANCE.md).
+## Governance
 
-# CLA & Non-assert signatures required
+CACAO Roaster operates as a sub-project of the Open Cybersecurity Alliance Community (OCA Community). Further details can be found in the [OCA Community Governance](https://github.com/opencybersecurityalliance/oca-community-project/blob/main/COMMUNITY-GOVERNANCE.md) document.
+
+## CLA & Non-assert signatures required
 
 All technical contributions must be covered by a Contributor's License Agreement. This requirement allows our work to advance through OASIS standards development stages and potentially be submitted to de jure organizations such as ISO. You will get a prompt to sign this document when you submit your first pull request to a project repository, or you can sign [here](https://www.oasis-open.org/open-projects/cla/oasis-open-projects-individual-contributor-license-agreement-i-cla/). If you are contributing on behalf of your employer, you must also sign the ECLA [here](https://www.oasis-open.org/open-projects/cla/entity-cla-20210630/).
